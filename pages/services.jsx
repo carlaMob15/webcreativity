@@ -14,12 +14,22 @@ import { urlFor } from '../lib/sanity'
 import { PortableText } from '@portabletext/react'
 
 // Icon component mapper
-const getServiceIcon = (iconType, customIcon) => {
-  const iconProps = { stroke: "rgb(99 102 241)", fill: "rgb(99 102 241)" }
-  
+const getServiceIcon = (iconType, customIcon, customIconImage) => {
+  if (customIcon) {
+    const iconUrl = urlFor(customIcon).width(32).height(32).url();
+    return (
+      <img
+        src={iconUrl}
+        alt="Service icon"
+        width={32}
+        height={32}
+        style={{ display: 'block' }}
+      />
+    );
+  }
   switch (iconType) {
     case 'uxui':
-      return <UxUiIcon stroke="rgb(99 102 241)" />
+      return <UxUiIcon stroke="rgb(99 102 241)" fill="rgb(99 102 241)" />
     case 'systems':
       return (
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -41,7 +51,16 @@ const getServiceIcon = (iconType, customIcon) => {
         </svg>
       )
     case 'custom':
-      return customIcon ? <div dangerouslySetInnerHTML={{ __html: customIcon }} /> : null
+      return null;
+    case 'custom-image':
+      return customIconImage ? (
+        <Image
+          src={urlFor(customIconImage).width(32).height(32).url()}
+          alt={customIconImage.alt || 'Service icon'}
+          width={32}
+          height={32}
+        />
+      ) : null
     default:
       return <div className="w-8 h-8 bg-indigo-500 rounded" />
   }
@@ -155,6 +174,13 @@ export async function getStaticProps() {
       getFeaturedTestimonial()
     ])
     
+    console.log('Services Page Data:', JSON.stringify(servicesPageData, null, 2))
+    if (servicesPageData && servicesPageData.services) {
+      servicesPageData.services.forEach((service, idx) => {
+        console.log(`Service #${idx}:`, JSON.stringify(service, null, 2));
+      });
+    }
+    
     return {
       props: {
         servicesPageData: servicesPageData || null,
@@ -177,6 +203,9 @@ export async function getStaticProps() {
 const Services = ({ servicesPageData, featuredTestimonial }) => {
   // Use CMS data if available, otherwise fall back to static data
   const data = servicesPageData || fallbackData
+
+  console.log('howWeWorkDescription:', data.howWeWorkDescription);
+  console.log('aboutDescription:', data.aboutDescription);
 
   // Determine which testimonials to show
   let testimonialsToDisplay = []
@@ -232,19 +261,22 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
           </div>
           <div className="max-w-5xl mx-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-              {(data.services || fallbackData.services).map((service, index) => (
-                <div key={index} className="bg-white/80 dark:bg-neutral-900/80 rounded-2xl shadow-sm p-8 flex flex-col items-start transition-all duration-300 hover:shadow-md">
-                  <div className="mb-6">
-                    {getServiceIcon(service.iconType, service.customIcon)}
+              {(data.services || fallbackData.services).map((service, index) => {
+                // console.log('Service object:', service); // Optionally keep for local debugging
+                return (
+                  <div key={index} className="bg-white/80 dark:bg-neutral-900/80 rounded-2xl shadow-sm p-8 flex flex-col items-start transition-all duration-300 hover:shadow-md">
+                    <div className="mb-6">
+                      {getServiceIcon(service.iconType, service.customIcon, service.customIconImage)}
+                    </div>
+                    <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
+                      {service.title}
+                    </h3>
+                    <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+                      {service.description}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">
-                    {service.title}
-                  </h3>
-                  <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-                    {service.description}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -265,7 +297,7 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
               {data.howWeWorkTitle || "How We Work"}
             </h2>
             <div className="text-lg leading-8 text-neutral-700 dark:text-neutral-300 mb-12 text-left">
-              {data.howWeWorkDescription && data.howWeWorkDescription.length > 0 ? (
+              {Array.isArray(data.howWeWorkDescription) ? (
                 <PortableText 
                   value={data.howWeWorkDescription}
                   components={{
@@ -274,11 +306,10 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
                     },
                   }}
                 />
+              ) : data.howWeWorkDescription ? (
+                <p style={{ whiteSpace: 'pre-line' }}>{data.howWeWorkDescription}</p>
               ) : (
-                <p>
-              Design should feel effortless for the user — but getting there takes collaboration, curiosity, and clarity.<br /><br />
-              We start each project by understanding your goals, mapping out real user journeys, and sketching ideas by hand. From there, we iterate, prototype, and refine until the experience feels just right.
-            </p>
+                <p>Design should feel effortless for the user — but getting there takes collaboration, curiosity, and clarity.</p>
               )}
             </div>
           </div>
@@ -381,7 +412,7 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
               {data.aboutTitle || "About Carla"}
             </h2>
             <div className="text-lg text-neutral-600 dark:text-neutral-400 mb-8">
-              {data.aboutDescription && data.aboutDescription.length > 0 ? (
+              {Array.isArray(data.aboutDescription) ? (
                 <PortableText 
                   value={data.aboutDescription}
                   components={{
@@ -390,15 +421,17 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
                     },
                   }}
                 />
+              ) : data.aboutDescription ? (
+                <p style={{ whiteSpace: 'pre-line' }}>{data.aboutDescription}</p>
               ) : (
                 <p>
-              I'm a Senior Product UX/UI Designer originally from Panama, now based in the UK.<br /><br />
-              My path into design began by exploring how things work under the hood. I started my career as a front-end designer before moving into design fully — a journey that gave me a strong foundation for creating practical, buildable solutions.<br /><br />
-              Over the years, I've worked with start-ups, studios, and organisations across Italy, Germany, and the UK — shaping digital products and strategies that put people first. While I enjoy the full design process, I have a particular love for visual design (UI) and inclusive systems that scale.<br /><br />
-              And although I spend my days in the digital world, I still start every project the old-school way: pen and paper first, always.<br /><br />
-              When I'm not designing, you'll probably find me experimenting in the kitchen, learning a new language, or chasing after my daughter.<br /><br />
-              My family is at the centre of everything I do. They remind me daily that simplicity matters — and that maintaining a healthy work/life balance is key to showing up as my best self in both worlds.
-            </p>
+                  I'm a Senior Product UX/UI Designer originally from Panama, now based in the UK.<br /><br />
+                  My path into design began by exploring how things work under the hood. I started my career as a front-end designer before moving into design fully — a journey that gave me a strong foundation for creating practical, buildable solutions.<br /><br />
+                  Over the years, I've worked with start-ups, studios, and organisations across Italy, Germany, and the UK — shaping digital products and strategies that put people first. While I enjoy the full design process, I have a particular love for visual design (UI) and inclusive systems that scale.<br /><br />
+                  And although I spend my days in the digital world, I still start every project the old-school way: pen and paper first, always.<br /><br />
+                  When I'm not designing, you'll probably find me experimenting in the kitchen, learning a new language, or chasing after my daughter.<br /><br />
+                  My family is at the centre of everything I do. They remind me daily that simplicity matters — and that maintaining a healthy work/life balance is key to showing up as my best self in both worlds.
+                </p>
               )}
             </div>
           </div>

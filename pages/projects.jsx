@@ -7,10 +7,18 @@ import { ProjectCard } from '../src/components/ProjectCard'
 import { projectsData } from '../src/data/projectsData'
 import { getProjectsPage, getProjects } from '../lib/sanity-queries'
 
+// Merge CMS projects (first) with hard-coded projects; deduplicate by slug (CMS wins)
+function mergeProjects(cmsProjects, legacyProjects) {
+  const cms = cmsProjects ?? []
+  const legacy = legacyProjects ?? []
+  const cmsSlugs = new Set(cms.map((p) => p.slug?.current ?? p.slug ?? ''))
+  const legacyOnly = legacy.filter((p) => !cmsSlugs.has(p.slug ?? ''))
+  return [...cms, ...legacyOnly]
+}
+
 export default function Projects({ projectsPageData, projects }) {
-  // Use Sanity data if available, otherwise fall back to static data
   const currentPageData = projectsPageData || {}
-  const currentProjects = (projects && projects.length > 0) ? projects : projectsData
+  const currentProjects = mergeProjects(projects, projectsData)
 
   // Sort projects by most recent year (descending)
   const sortedProjects = [...currentProjects].sort((a, b) => {

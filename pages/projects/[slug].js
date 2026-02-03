@@ -60,6 +60,19 @@ function normalizeCmsProjectToLegacy(cms) {
   }
 }
 
+// Replace undefined with null so Next.js getStaticProps can serialize (JSON does not support undefined)
+function sanitizeForSerialization(value) {
+  if (value === undefined) return null
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(sanitizeForSerialization)
+  const out = {}
+  for (const key of Object.keys(value)) {
+    const v = value[key]
+    out[key] = v === undefined ? null : sanitizeForSerialization(v)
+  }
+  return out
+}
+
 // Same as projects.jsx: normalize CMS for card, merge with legacy, dedupe by slug
 function buildMergedProjectsList(normalizedCmsForCard, legacyProjects) {
   const cms = normalizedCmsForCard ?? []
@@ -1292,11 +1305,11 @@ export async function getStaticProps({ params }) {
 
   if (cmsProject) {
     const project = normalizeCmsProjectToLegacy(cmsProject);
-    return { props: { project, otherProjects }, revalidate: 60 };
+    return { props: sanitizeForSerialization({ project, otherProjects }), revalidate: 60 };
   }
 
   const legacyProject = projectsData.find((p) => p.slug === slug);
   if (!legacyProject) return { notFound: true };
-  return { props: { project: legacyProject, otherProjects }, revalidate: 60 };
+  return { props: sanitizeForSerialization({ project: legacyProject, otherProjects }), revalidate: 60 };
 }
  

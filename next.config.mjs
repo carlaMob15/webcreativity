@@ -7,7 +7,7 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
   reactStrictMode: true,
   images: {
-    domains: ['picsum.photos', 'via.placeholder.com', 'images.unsplash.com'],
+    domains: ['picsum.photos', 'via.placeholder.com', 'images.unsplash.com', 'cdn.sanity.io'],
     unoptimized: true,
   },
   // Optimize development performance

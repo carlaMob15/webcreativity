@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,8 +9,80 @@ import { ProjectCard } from '../../src/components/ProjectCard';
 import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
 import BackToTop from '../../src/components/BackToTop';
 import { projectsData } from '../../src/data/projectsData';
+import { getProjects, getProjectBySlug } from '../../lib/sanity-queries';
+import { urlFor } from '../../lib/sanity';
 import { SiFigma, SiReact, SiTailwindcss, SiNextdotjs, SiMongodb, SiStripe, SiStorybook, SiConfluence, SiJira, SiSketch, SiInvision, SiMiro } from 'react-icons/si';
 import { HiMagnifyingGlass, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
+
+// Normalize CMS project to the same shape as legacy (projectsData) so the same template renders both
+function normalizeCmsProjectToLegacy(cms) {
+  if (!cms) return null
+  const slug = cms.slug?.current ?? cms.slug ?? ''
+  const hero = cms.heroImage || cms.thumbnailImage
+  const imageUrl = hero ? urlFor(hero).width(1200).url() : ''
+  const gallery = (cms.gallery || []).map((g) => (g?.image ? urlFor(g.image).width(1200).url() : '')).filter(Boolean)
+  const galleryCaptions = (cms.gallery || []).map((g) => g?.caption ?? '')
+  const galleryAlt = (cms.gallery || []).map((g) => g?.alt ?? '')
+  const technicalApproachImages = (cms.technicalApproachImages || []).map((t) => ({
+    src: t?.image ? urlFor(t.image).width(1200).url() : '',
+    alt: t?.alt ?? '',
+    caption: t?.caption ?? '',
+  })).filter((t) => t.src)
+  const impactImage = cms.impactImage?.image
+    ? {
+        src: urlFor(cms.impactImage.image).width(1200).url(),
+        alt: cms.impactImage.alt ?? '',
+        caption: cms.impactImage.caption ?? '',
+      }
+    : undefined
+  return {
+    slug,
+    title: cms.title,
+    description: cms.shortDescription || cms.description || '',
+    image: imageUrl,
+    imageAlt: cms.heroImageAlt ?? '',
+    projectType: Array.isArray(cms.tags) && cms.tags.length ? cms.tags.join(', ') : '',
+    liveUrl: cms.liveUrl ?? undefined,
+    client: cms.client ?? undefined,
+    timeline: cms.timeline ?? undefined,
+    services: cms.services ?? undefined,
+    tools: Array.isArray(cms.tools) ? cms.tools : undefined,
+    overview: cms.overview ?? '',
+    challenge: cms.challenge ?? '',
+    solution: cms.solution ?? '',
+    impact: cms.impact ?? '',
+    gallery,
+    galleryCaptions,
+    galleryAlt,
+    technicalApproach: cms.technicalApproach ?? [],
+    technicalApproachImages,
+    impactImage,
+  }
+}
+
+// Same as projects.jsx: normalize CMS for card, merge with legacy, dedupe by slug
+function buildMergedProjectsList(normalizedCmsForCard, legacyProjects) {
+  const cms = normalizedCmsForCard ?? []
+  const legacy = legacyProjects ?? []
+  const cmsSlugs = new Set(cms.map((p) => p.slug ?? ''))
+  const legacyOnly = legacy.filter((p) => !cmsSlugs.has(p.slug ?? ''))
+  return [...cms, ...legacyOnly]
+}
+
+function normalizeCmsForCard(cmsProject) {
+  if (!cmsProject) return null
+  const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
+  const thumb = cmsProject.thumbnailImage || cmsProject.heroImage
+  const imageUrl = thumb ? urlFor(thumb).width(800).height(600).url() : ''
+  return {
+    slug,
+    title: cmsProject.title,
+    image: imageUrl,
+    projectType: Array.isArray(cmsProject.tags) && cmsProject.tags.length ? cmsProject.tags.join(', ') : '',
+    shortDescription: cmsProject.shortDescription || cmsProject.description || '',
+    description: cmsProject.shortDescription || cmsProject.description || '',
+  }
+}
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -51,46 +122,30 @@ const tagColors = [
   'bg-lime-100 text-lime-800',
 ];
 
-export default function ProjectDetail() {
-  const router = useRouter();
-  const { slug } = router.query;
+export default function ProjectDetail({ project, otherProjects }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Add useEffect to handle responsive behavior
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const project = projectsData.find((p) => p.slug === slug);
-
   if (!project) {
-    return <div>Project not found</div>;
+    return null; // getStaticProps returns notFound for unknown slugs
   }
 
-  // Sort other projects by most recent year (descending)
-  const otherProjects = projectsData
-    .filter(p => p.slug !== slug)
-    .sort((a, b) => {
-      const getYear = (timeline) => {
-        if (!timeline) return 0;
-        const match = timeline.match(/\d{4}/g);
-        return match ? parseInt(match[match.length - 1], 10) : 0;
-      };
-      return getYear(b.timeline) - getYear(a.timeline);
-    });
+  // otherProjects already passed from getStaticProps (merged list without current, card-normalized)
+  const otherProjectsList = otherProjects || [];
 
   const projectsPerPage = isMobile ? 1 : 3;
-  const totalPages = Math.ceil(otherProjects.length / projectsPerPage);
+  const totalPages = Math.ceil(otherProjectsList.length / projectsPerPage);
 
   const slideVariants = {
     enter: (direction) => ({
@@ -127,7 +182,7 @@ export default function ProjectDetail() {
     setCurrentPage((prev) => (prev < totalPages - 1 ? prev + 1 : prev));
   };
 
-  const currentProjects = otherProjects.slice(
+  const currentProjects = otherProjectsList.slice(
     currentPage * projectsPerPage,
     (currentPage + 1) * projectsPerPage
   );
@@ -1209,4 +1264,39 @@ export default function ProjectDetail() {
       />
     </>
   );
-} 
+}
+
+export async function getStaticPaths() {
+  const cmsProjects = await getProjects();
+  const cmsSlugs = (cmsProjects || []).map((p) => p.slug?.current ?? p.slug).filter(Boolean);
+  const legacySlugs = projectsData.map((p) => p.slug).filter(Boolean);
+  const allSlugs = [...new Set([...cmsSlugs, ...legacySlugs])];
+  return {
+    paths: allSlugs.map((slug) => ({ params: { slug } })),
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const slug = params?.slug;
+  if (!slug) return { notFound: true };
+
+  const [cmsProject, cmsProjects] = await Promise.all([
+    getProjectBySlug(slug),
+    getProjects(),
+  ]);
+
+  const normalizedCmsForCard = (cmsProjects || []).map(normalizeCmsForCard).filter(Boolean);
+  const merged = buildMergedProjectsList(normalizedCmsForCard, projectsData);
+  const otherProjects = merged.filter((p) => p.slug !== slug);
+
+  if (cmsProject) {
+    const project = normalizeCmsProjectToLegacy(cmsProject);
+    return { props: { project, otherProjects }, revalidate: 60 };
+  }
+
+  const legacyProject = projectsData.find((p) => p.slug === slug);
+  if (!legacyProject) return { notFound: true };
+  return { props: { project: legacyProject, otherProjects }, revalidate: 60 };
+}
+ 

@@ -34,7 +34,7 @@ function normalizeCmsProjectToLegacy(cms) {
         alt: cms.impactImage.alt ?? '',
         caption: cms.impactImage.caption ?? '',
       }
-    : undefined
+    : null
   return {
     slug,
     title: cms.title,
@@ -42,11 +42,11 @@ function normalizeCmsProjectToLegacy(cms) {
     image: imageUrl,
     imageAlt: cms.heroImageAlt ?? '',
     projectType: Array.isArray(cms.tags) && cms.tags.length ? cms.tags.join(', ') : '',
-    liveUrl: cms.liveUrl ?? undefined,
-    client: cms.client ?? undefined,
-    timeline: cms.timeline ?? undefined,
-    services: cms.services ?? undefined,
-    tools: Array.isArray(cms.tools) ? cms.tools : undefined,
+    liveUrl: cms.liveUrl ?? null,
+    client: cms.client ?? null,
+    timeline: cms.timeline ?? null,
+    services: cms.services ?? null,
+    tools: Array.isArray(cms.tools) ? cms.tools : null,
     overview: cms.overview ?? '',
     challenge: cms.challenge ?? '',
     solution: cms.solution ?? '',

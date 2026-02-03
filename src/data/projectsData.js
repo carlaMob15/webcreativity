@@ -288,7 +288,7 @@ export const projectsData = [
     client: 'Tarrantoga',
     timeline: '2024 - 2025',
     liveUrl: 'https://onestophospital.co.uk',
-    services: undefined,
+    services: 'UX/UI Design, Interactive Design, Prototyping, Responsive Design',
     tools: ['Figma'],
     technologies: ['Figma', 'UX/UI Design', 'Interactive Design', 'Prototyping', 'Responsive Design'],
     features: [

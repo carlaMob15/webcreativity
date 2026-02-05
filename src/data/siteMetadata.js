@@ -28,8 +28,8 @@ const siteMetadata = {
   locale: 'en-GB',
   // Adding navigation links that are referenced in the Header component
   siteNavLinks: [
-    { name: 'Work', href: '/projects' },
-    { name: 'Services', href: '/services' },
+    { name: 'Projects', href: '/projects' },
+    { name: 'About', href: '/services' },
     { name: 'Contact', href: '/contact' }
   ],
   analytics: {

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Container } from '../src/components/Container'
 import { ProjectCard } from '../src/components/ProjectCard'
 import ContactPurpleBlock from '../src/components/ContactPurpleBlock'
+import OptimizedImage from '../src/components/OptimizedImage'
 import { FadeIn, FadeInStagger } from '../src/components/Motion'
 import Link from 'next/link'
 import { getSiteSettings, getFeaturedProjects, getHomePage } from '../lib/sanity-queries'
@@ -70,9 +71,16 @@ const Home = ({ siteSettings, projects, homePageData }) => {
                   <span className="inline-block align-baseline ml-1 w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-[rgb(99,102,241)]" style={{ verticalAlign: 'baseline' }}></span>
                 </motion.h1>
                 <div className="flex flex-col sm:flex-row items-start gap-8 mt-10 sm:mt-16 w-full">
-                  {/* Image placeholder - circular; on mobile: larger and centered */}
-                  <div className="flex-shrink-0 w-40 h-40 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full bg-amber-200 dark:bg-amber-300/60 flex items-center justify-center overflow-hidden self-center sm:self-auto">
-                    <span className="text-neutral-500 dark:text-neutral-600 text-sm text-center px-2">Photo</span>
+                  {/* Hero avatar - circular; on mobile: larger and centered */}
+                  <div className="relative flex-shrink-0 w-40 h-40 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden self-center sm:self-auto">
+                    <OptimizedImage
+                      src="/images/hero-avatar.jpg"
+                      alt="Carla"
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 640px) 160px, (max-width: 768px) 144px, 176px"
+                      priority
+                    />
                   </div>
                   {/* Body Copy */}
                   <div className="text-lg text-neutral-800 dark:text-neutral-100 max-w-2xl text-left flex-1 min-w-0">

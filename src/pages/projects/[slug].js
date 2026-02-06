@@ -9,6 +9,7 @@ import { Container } from '../../components/Container';
 import { ProjectCard } from '../../components/ProjectCard';
 import ContactPurpleBlock from '../../components/ContactPurpleBlock';
 import BackToTop from '../../components/BackToTop';
+import { AvailableForWorkPill } from '../../components/AvailableForWorkPill';
 import { projectsData } from '../../data/projectsData';
 import { SiFigma, SiReact, SiTailwindcss, SiNextdotjs, SiMongodb, SiStripe, SiStorybook, SiConfluence, SiJira, SiSketch, SiInvision, SiMiro } from 'react-icons/si';
 import { HiMagnifyingGlass, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
@@ -1079,6 +1080,7 @@ export default function ProjectDetail() {
 
       {/* Work Together Section – same width as homepage scrolling cards */}
       <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
+      <AvailableForWorkPill scrollThreshold={250} />
 
       {/* Lightbox Gallery */}
       <Lightbox

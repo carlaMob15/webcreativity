@@ -8,6 +8,7 @@ import { Container } from '../../src/components/Container';
 import { ProjectCard } from '../../src/components/ProjectCard';
 import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
 import BackToTop from '../../src/components/BackToTop';
+import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill';
 import { projectsData } from '../../src/data/projectsData';
 import { getProjects, getProjectBySlug } from '../../lib/sanity-queries';
 import { urlFor } from '../../lib/sanity';
@@ -1148,6 +1149,7 @@ export default function ProjectDetail({ project, otherProjects }) {
 
       {/* Work Together Section – same width as homepage scrolling cards */}
       <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
+      <AvailableForWorkPill scrollThreshold={250} />
 
       {/* Lightbox Gallery */}
       <Lightbox
@@ -1279,35 +1281,47 @@ export default function ProjectDetail({ project, otherProjects }) {
 }
 
 export async function getStaticPaths() {
-  const cmsProjects = await getProjects();
-  const cmsSlugs = (cmsProjects || []).map((p) => p.slug?.current ?? p.slug).filter(Boolean);
+  let cmsSlugs = [];
+  try {
+    const cmsProjects = await getProjects();
+    cmsSlugs = (cmsProjects || []).map((p) => p.slug?.current ?? p.slug).filter(Boolean);
+  } catch (e) {
+    console.warn('getStaticPaths: getProjects failed, using legacy slugs only', e?.message);
+  }
   const legacySlugs = projectsData.map((p) => p.slug).filter(Boolean);
   const allSlugs = [...new Set([...cmsSlugs, ...legacySlugs])];
   return {
     paths: allSlugs.map((slug) => ({ params: { slug } })),
-    fallback: false,
+    fallback: 'blocking',
   };
 }
 
 export async function getStaticProps({ params }) {
-  const slug = params?.slug;
-  if (!slug) return { notFound: true };
+  const rawSlug = params?.slug;
+  if (!rawSlug) return { notFound: true };
+  const slug = typeof rawSlug === 'string' ? rawSlug.toLowerCase().trim() : rawSlug;
 
-  const [cmsProject, cmsProjects] = await Promise.all([
-    getProjectBySlug(slug),
-    getProjects(),
-  ]);
+  let cmsProject = null;
+  let cmsProjects = [];
+  try {
+    [cmsProject, cmsProjects] = await Promise.all([
+      getProjectBySlug(slug),
+      getProjects(),
+    ]);
+  } catch (e) {
+    console.warn('getStaticProps: Sanity fetch failed, falling back to legacy', e?.message);
+  }
 
   const normalizedCmsForCard = (cmsProjects || []).map(normalizeCmsForCard).filter(Boolean);
   const merged = buildMergedProjectsList(normalizedCmsForCard, projectsData);
-  const otherProjects = merged.filter((p) => p.slug !== slug);
+  const otherProjects = merged.filter((p) => (p.slug || '').toLowerCase() !== slug);
 
   if (cmsProject) {
     const project = normalizeCmsProjectToLegacy(cmsProject);
     return { props: sanitizeForSerialization({ project, otherProjects }), revalidate: 60 };
   }
 
-  const legacyProject = projectsData.find((p) => p.slug === slug);
+  const legacyProject = projectsData.find((p) => (p.slug || '').toLowerCase() === slug);
   if (!legacyProject) return { notFound: true };
   return { props: sanitizeForSerialization({ project: legacyProject, otherProjects }), revalidate: 60 };
 }

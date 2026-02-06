@@ -1,6 +1,7 @@
 import { PageSEO } from '../src/components/SEO'
 import { SimpleLayout } from '../src/components/SimpleLayout'
 import ContactPurpleBlock from '../src/components/ContactPurpleBlock'
+import { AvailableForWorkPill } from '../src/components/AvailableForWorkPill'
 import { Container } from '../src/components/Container'
 import { ProjectCard } from '../src/components/ProjectCard'
 import { projectsData } from '../src/data/projectsData'
@@ -62,6 +63,7 @@ export default function Projects({ projectsPageData, projects }) {
         </div>
       </SimpleLayout>
       <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
+      <AvailableForWorkPill scrollThreshold={250} />
     </>
   )
 }

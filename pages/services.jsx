@@ -5,6 +5,7 @@ import siteMetadata from '../src/data/siteMetadata'
 import { Button } from '../src/components/Button'
 import { RoundedImage } from '../src/components/RoundedImage'
 import ContactPurpleBlock from '../src/components/ContactPurpleBlock'
+import { AvailableForWorkPill } from '../src/components/AvailableForWorkPill'
 import TestimonialsSection from '../src/components/TestimonialsSection'
 import UxUiIcon from '../src/images/icons/UxUiIcon'
 import LightBulbIcon from '../src/images/icons/LightBulbIcon'
@@ -440,6 +441,7 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
 
       {/* Contact Section – same width as homepage scrolling cards */}
       <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
+      <AvailableForWorkPill scrollThreshold={250} />
     </>
   )
 }

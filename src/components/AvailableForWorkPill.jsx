@@ -5,10 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const AVATAR_SRC = '/images/hero-avatar.jpg'
 const CONTACT_HREF = '/contact'
+const DEFAULT_SCROLL_THRESHOLD = 250
 
-export function AvailableForWorkPill({ heroRef }) {
+export function AvailableForWorkPill({ heroRef, scrollThreshold = DEFAULT_SCROLL_THRESHOLD }) {
   const [showPill, setShowPill] = useState(false)
 
+  // Home: show when hero scrolls out of view
   useEffect(() => {
     const el = heroRef?.current
     if (!el) return
@@ -26,6 +28,18 @@ export function AvailableForWorkPill({ heroRef }) {
     observer.observe(el)
     return () => observer.disconnect()
   }, [heroRef])
+
+  // Other pages: show after short scroll (e.g. 200–300px); skip when heroRef is passed (home)
+  useEffect(() => {
+    if (heroRef != null) return
+
+    const threshold = scrollThreshold ?? DEFAULT_SCROLL_THRESHOLD
+
+    const check = () => setShowPill(typeof window !== 'undefined' && window.scrollY >= threshold)
+    check()
+    window.addEventListener('scroll', check, { passive: true })
+    return () => window.removeEventListener('scroll', check)
+  }, [heroRef, scrollThreshold])
 
   return (
     <AnimatePresence>

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { PageSEO } from '../components/SEO'
 import { SimpleLayout } from '../components/SimpleLayout'
 import ContactPurpleBlock from '../components/ContactPurpleBlock'
+import { AvailableForWorkPill } from '../components/AvailableForWorkPill'
 import { Container } from '../components/Container'
 import { ProjectCard } from '../components/ProjectCard'
 import { projectsData } from '../data/projectsData'
@@ -53,6 +54,7 @@ export default function Projects({ projectsPageData, projects }) {
         </Container.Grid>
       </SimpleLayout>
       <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
+      <AvailableForWorkPill scrollThreshold={250} />
     </>
   )
 }

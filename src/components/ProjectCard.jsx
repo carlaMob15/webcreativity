@@ -24,12 +24,32 @@ const ArrowIcon = () => (
   </svg>
 )
 
-export function ProjectCard({ project, className, noBackground }) {
+const ArrowUpRightIcon = ({ className = '' }) => (
+  <svg
+    className={clsx('w-5 h-5 transition-colors duration-300', className)}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
+    <path
+      d="M7 17L17 7M17 7H7M17 7V17"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+export function ProjectCard({ project, className, noBackground, hideTags }) {
   const router = useRouter()
+  if (!project) return null
+  const slug = project.slug?.current ?? project.slug ?? ''
 
   const handleViewProject = (e) => {
     e.preventDefault()
-    router.push(`/projects/${project.slug}`)
+    router.push(`/projects/${slug}`)
   }
 
   return (
@@ -42,15 +62,15 @@ export function ProjectCard({ project, className, noBackground }) {
           ? "bg-transparent"
           : "bg-white dark:bg-neutral-900",
         "transition-all duration-500",
-        "focus-within:ring-2 focus-within:ring-[rgb(99,102,241)] focus-within:ring-offset-2 dark:focus-within:ring-offset-neutral-900",
+        "focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900",
         className
       )}
       role="article"
       tabIndex="0"
     >
       <Link 
-        href={`/projects/${project.slug}`}
-        className="block relative aspect-[4/3] overflow-hidden rounded-2xl cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-300 focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)] focus:ring-offset-2 dark:focus:ring-offset-neutral-900"
+        href={`/projects/${slug}`}
+        className="block relative aspect-[4/3] overflow-hidden rounded-2xl cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-300 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
         aria-label={`View project: ${project.title}`}
       >
         <OptimizedImage
@@ -66,49 +86,75 @@ export function ProjectCard({ project, className, noBackground }) {
           className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           aria-hidden="true"
         />
-        <div className="absolute bottom-4 right-4">
-          <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out transform translate-y-4 group-hover:translate-y-0">
-            <button 
-              onClick={handleViewProject}
-              className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/60 backdrop-blur-md border border-white/20 hover:bg-white/70 transition-all duration-500 ease-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)] focus:ring-offset-2"
-              aria-label={`View project details: ${project.title}`}
-            >
-              <ArrowIcon />
-            </button>
+        {!hideTags && (
+          <div className="absolute bottom-4 right-4">
+            <div className="opacity-0 group-hover:opacity-100 transition-all duration-500 ease-out transform translate-y-4 group-hover:translate-y-0">
+              <button 
+                onClick={handleViewProject}
+                className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/60 backdrop-blur-md border border-white/20 hover:bg-white/70 transition-all duration-500 ease-out cursor-pointer focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2"
+                aria-label={`View project details: ${project.title}`}
+              >
+                <ArrowIcon />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
       </Link>
       
       <div className="p-6">
-        <span 
-          className="text-sm font-medium text-neutral-500 dark:text-neutral-400 block mb-2 transition-colors duration-300 group-hover:text-[rgb(99,102,241)]"
-          aria-label={`Project type: ${project.projectType || project.category || project.client}`}
-        >
-          {project.projectType ? (
-            <span className="flex flex-wrap gap-2">
-              {project.projectType.split(',').map((type, index) => (
-                <span 
-                  key={index} 
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 transition-colors duration-300 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
-                >
-                  {type.trim()}
+        {hideTags ? (
+          <>
+            <div className="flex items-start justify-between gap-4">
+              <Link 
+                href={`/projects/${slug}`}
+                className="cursor-pointer focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2 rounded-lg min-w-0 flex-1"
+              >
+                <h3 className="text-2xl font-bold text-neutral-900 dark:text-white group-hover:text-[rgb(99,102,241)] transition-colors duration-300">
+                  {project.title}
+                </h3>
+              </Link>
+              <Link
+                href={`/projects/${slug}`}
+                className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full border-2 border-[rgb(99,102,241)] text-[rgb(99,102,241)] bg-transparent group-hover:bg-[rgb(99,102,241)] group-hover:text-white transition-colors duration-300 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2"
+                aria-label={`View project: ${project.title}`}
+              >
+                <ArrowUpRightIcon />
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <span 
+              className="text-sm font-medium text-neutral-500 dark:text-neutral-400 block mb-2 transition-colors duration-300 group-hover:text-[rgb(99,102,241)]"
+              aria-label={`Project type: ${project.projectType || project.category || project.client}`}
+            >
+              {project.projectType ? (
+                <span className="flex flex-wrap gap-2">
+                  {project.projectType.split(',').map((type, index) => (
+                    <span 
+                      key={index} 
+                      className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 transition-colors duration-300 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
+                    >
+                      {type.trim()}
+                    </span>
+                  ))}
                 </span>
-              ))}
+              ) : (
+                project.category || project.client
+              )}
             </span>
-          ) : (
-            project.category || project.client
-          )}
-        </span>
-        <div className="flex items-center justify-between">
-          <Link 
-            href={`/projects/${project.slug}`}
-            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)] focus:ring-offset-2 rounded-lg"
-          >
-            <h3 className="text-2xl font-bold text-neutral-900 dark:text-white group-hover:text-[rgb(99,102,241)] transition-colors duration-300 relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-[rgb(99,102,241)] after:transition-all after:duration-300 group-hover:after:w-full">
-              {project.title}
-            </h3>
-          </Link>
-        </div>
+            <div className="flex items-center justify-between">
+              <Link 
+                href={`/projects/${slug}`}
+                className="cursor-pointer focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2 rounded-lg"
+              >
+                <h3 className="text-2xl font-bold text-neutral-900 dark:text-white group-hover:text-[rgb(99,102,241)] transition-colors duration-300">
+                  {project.title}
+                </h3>
+              </Link>
+            </div>
+          </>
+        )}
         <p 
           className="text-neutral-600 dark:text-neutral-400 mt-2 transition-colors duration-300 group-hover:text-neutral-700 dark:group-hover:text-neutral-300"
           aria-label={`Project description: ${project.shortDescription || project.description}`}
@@ -122,20 +168,23 @@ export function ProjectCard({ project, className, noBackground }) {
 
 ProjectCard.propTypes = {
   project: PropTypes.shape({
-    slug: PropTypes.string.isRequired,
+    slug: PropTypes.string,
     title: PropTypes.string.isRequired,
     image: PropTypes.string,
     projectType: PropTypes.string,
     category: PropTypes.string,
     client: PropTypes.string,
+    timeline: PropTypes.string,
     description: PropTypes.string,
     shortDescription: PropTypes.string,
   }).isRequired,
   className: PropTypes.string,
   noBackground: PropTypes.bool,
+  hideTags: PropTypes.bool,
 }
 
 ProjectCard.defaultProps = {
   className: '',
   noBackground: false,
+  hideTags: false,
 } 

@@ -51,21 +51,15 @@ export default function Projects({ projectsPageData, projects }) {
         <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-12">
           {currentPageData.description || "Our Work – UX/UI Projects Across Web, Mobile & SaaS"}
         </p>
-        <Container.Grid 
-          cols={1} 
-          smCols={1} 
-          mdCols={2} 
-          lgCols={2} 
-          gap={8}
-          className="mx-auto max-w-7xl"
-        >
-          {currentProjects.map((project) => (
-            <ProjectCard 
-              key={project.slug} 
-              project={project} 
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl">
+          {currentProjects.filter(Boolean).map((project) => (
+            <ProjectCard
+              key={project.slug?.current ?? project.slug ?? project.title}
+              project={project}
+              hideTags
             />
           ))}
-        </Container.Grid>
+        </div>
       </SimpleLayout>
       <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
     </>

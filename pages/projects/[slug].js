@@ -1087,9 +1087,10 @@ export default function ProjectDetail({ project, otherProjects }) {
                         }}
                         className="h-full"
                       >
-                        <ProjectCard 
+                        <ProjectCard
                           project={project}
                           noBackground
+                          hideTags
                         />
                       </motion.div>
                     ))}

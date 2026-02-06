@@ -10,25 +10,44 @@ import OptimizedImage from '../src/components/OptimizedImage'
 import { FadeIn, FadeInStagger } from '../src/components/Motion'
 import Link from 'next/link'
 import { getSiteSettings, getFeaturedProjects, getHomePage } from '../lib/sanity-queries'
+import { urlFor } from '../lib/sanity'
 import siteMetadata from '../src/data/siteMetadata'
 import { projectsData } from '../src/data/projectsData'
 
-const Home = ({ siteSettings, projects, homePageData }) => {
-  const heroRef = useRef(null)
-  // Use Sanity data if available, otherwise fall back to static data
-  const currentSiteSettings = siteSettings || siteMetadata
-  const currentProjects = (projects && projects.length > 0) ? projects : projectsData
-  const currentHomeData = homePageData || {}
+function normalizeFeaturedProject(cmsProject) {
+  if (!cmsProject) return null
+  const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
+  const thumb = cmsProject.thumbnailImage || cmsProject.heroImage
+  const imageUrl = thumb ? urlFor(thumb).width(800).height(600).url() : ''
+  return {
+    slug,
+    title: cmsProject.title,
+    image: imageUrl,
+    shortDescription: cmsProject.shortDescription || cmsProject.description || '',
+    description: cmsProject.shortDescription || cmsProject.description || '',
+    client: cmsProject.client || '',
+    timeline: cmsProject.timeline || '',
+  }
+}
 
-  // Sort projects by most recent year (descending) - for static data
-  const sortedProjects = [...currentProjects].sort((a, b) => {
-    const getYear = (timeline) => {
-      if (!timeline) return 0;
-      const match = timeline.match(/\d{4}/g);
-      return match ? parseInt(match[match.length - 1], 10) : 0;
-    };
-    return getYear(b.timeline) - getYear(a.timeline);
-  });
+function getFeaturedProjectsList(cmsFeatured, legacy) {
+  const normalized = (cmsFeatured || []).map(normalizeFeaturedProject).filter(Boolean)
+  const cmsSlugs = new Set(normalized.map((p) => p.slug).filter(Boolean))
+  const legacyOnly = (legacy || []).filter((p) => !cmsSlugs.has(p.slug))
+  const merged = [...normalized, ...legacyOnly]
+  const getYear = (timeline) => {
+    if (!timeline) return 0
+    const match = String(timeline).match(/\d{4}/g)
+    return match ? parseInt(match[match.length - 1], 10) : 0
+  }
+  return merged.sort((a, b) => getYear(b.timeline) - getYear(a.timeline)).slice(0, 3)
+}
+
+const Home = ({ siteSettings, homePageData, featuredProjects }) => {
+  const heroRef = useRef(null)
+  const currentSiteSettings = siteSettings || siteMetadata
+  const currentHomeData = homePageData || {}
+  const featured = featuredProjects || []
 
   return (
     <>
@@ -111,35 +130,48 @@ const Home = ({ siteSettings, projects, homePageData }) => {
           {/* What I can help with – scroll-driven stacking cards */}
           <WhatICanHelpWith />
 
-          {/* Projects Grid */}
+          {/* Featured projects */}
           <Container className="mt-32 sm:mt-40">
             <FadeIn>
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
-                {currentHomeData.featuredWorkTitle || "Featured Work"}
-              </h2>
-              {currentHomeData.featuredWorkDescription && (
-                <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-400">
-                  {currentHomeData.featuredWorkDescription}
-                </p>
-              )}
+              <div className="flex flex-col md:flex-row md:items-start md:justify-between md:gap-8 gap-6">
+                <div className="min-w-0">
+                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
+                    Featured projects
+                  </h2>
+                  <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl">
+                    A selection of recent work, focused on complex products, real constraints, and practical outcomes.
+                  </p>
+                </div>
+                <Link
+                  href="/projects"
+                  className="flex-shrink-0 inline-flex items-center justify-center px-5 py-2.5 rounded-full text-base font-medium border-2 border-[rgb(99,102,241)] text-[rgb(99,102,241)] hover:bg-[rgb(99,102,241)] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)] focus:ring-offset-2"
+                >
+                  See more projects
+                </Link>
+              </div>
             </FadeIn>
-            <Container.Grid 
-              cols={1} 
-              smCols={1} 
-              mdCols={2} 
-              gap={8}
-              className="mt-16"
-            >
-              {sortedProjects
-                .filter(project => project.title && (project.slug || project.slug?.current) && project.description)
-                .slice(0, 5)
-                .map((project) => (
-                  <ProjectCard 
-                    key={project.slug?.current || project.slug || project.title} 
-                    project={project} 
+            <div className="mt-12 md:mt-16 space-y-8 md:space-y-10">
+              {featured[0] && (
+                <div className="w-full">
+                  <ProjectCard
+                    key={featured[0].slug || featured[0].title}
+                    project={featured[0]}
+                    hideTags
                   />
-                ))}
-            </Container.Grid>
+                </div>
+              )}
+              {featured.length > 1 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+                  {featured.slice(1, 3).map((project) => (
+                    <ProjectCard
+                      key={project.slug || project.title}
+                      project={project}
+                      hideTags
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </Container>
 
           {/* Contact Section – same width as scrolling cards (max-w-5xl lg:max-w-7xl) */}
@@ -154,29 +186,32 @@ const Home = ({ siteSettings, projects, homePageData }) => {
 // Fetch data from Sanity at build time
 export async function getStaticProps() {
   try {
-    const [siteSettings, projects, homePageData] = await Promise.all([
+    const [siteSettings, cmsFeatured, homePageData] = await Promise.all([
       getSiteSettings(),
       getFeaturedProjects(),
       getHomePage()
     ])
 
+    const featuredProjects = getFeaturedProjectsList(cmsFeatured, projectsData)
+
     return {
       props: {
         siteSettings: siteSettings || null,
-        projects: projects || [],
         homePageData: homePageData || null,
+        featuredProjects,
       },
       revalidate: 60, // Revalidate every minute
     }
   } catch (error) {
     console.error('Error fetching data from Sanity:', error)
-    
-    // Return fallback data if Sanity fails
+
+    const featuredProjects = getFeaturedProjectsList([], projectsData)
+
     return {
       props: {
         siteSettings: null,
-        projects: [],
         homePageData: null,
+        featuredProjects,
       },
       revalidate: 60,
     }

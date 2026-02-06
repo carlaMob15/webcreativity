@@ -52,9 +52,7 @@ export default function Projects({ projectsPageData, projects }) {
           ))}
         </Container.Grid>
       </SimpleLayout>
-      <Container>
-        <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
-      </Container>
+      <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
     </>
   )
 }

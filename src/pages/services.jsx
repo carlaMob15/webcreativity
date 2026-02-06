@@ -412,10 +412,8 @@ const Services = ({ servicesPageData, featuredTestimonial }) => {
         </div>
       </Container>
 
-      {/* Contact Section */}
-      <Container>
-        <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
-      </Container>
+      {/* Contact Section – same width as homepage scrolling cards */}
+      <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
     </>
   )
 }

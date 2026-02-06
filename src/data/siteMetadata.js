@@ -16,8 +16,8 @@ const siteMetadata = {
   socialBanner: '/images/social-banner.jpg',
   email: 'wcwebcreativity@gmail.com',
   phoneNumber: '+44 (0) 123 456 7890', // Updated to UK format
-  contactTitle: 'Let\'s Work Together',
-  contactSubtitle: "I'm always open to discussing new projects, creative ideas or opportunities to be part of your vision. Feel free to reach out through the contact form below.",
+  contactTitle: 'Transform your ideas into intuitive experiences',
+  contactSubtitle: "Have a project in mind? I'm available for new opportunities and love designing thoughtful, user-friendly digital products, whether it's UX/UI for web and mobile apps, SaaS platforms, or something new.",
   socials: {
     github: '',
     linkedin: 'https://www.linkedin.com/company/wcwebcreativity/',

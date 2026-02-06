@@ -142,10 +142,8 @@ const Home = ({ siteSettings, projects, homePageData }) => {
             </Container.Grid>
           </Container>
 
-          {/* Contact Section */}
-          <Container>
-            <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" siteSettings={currentSiteSettings} />
-          </Container>
+          {/* Contact Section – same width as scrolling cards (max-w-5xl lg:max-w-7xl) */}
+          <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" siteSettings={currentSiteSettings} />
         </div>
         <AvailableForWorkPill heroRef={heroRef} />
       </main>

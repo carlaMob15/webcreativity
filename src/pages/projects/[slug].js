@@ -1077,10 +1077,8 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      {/* Work Together Section */}
-      <Container>
-        <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
-      </Container>
+      {/* Work Together Section – same width as homepage scrolling cards */}
+      <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" />
 
       {/* Lightbox Gallery */}
       <Lightbox

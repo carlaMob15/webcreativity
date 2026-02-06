@@ -20,20 +20,20 @@ const CARDS = [
   {
     id: 'card2',
     bg: CARD_COLORS.card2,
-    title: 'By designing and iterating end-to-end solutions',
-    description: 'From early ideas to build-ready UI, working closely with product and engineering.',
+    title: 'End-to-end UX & UI design',
+    description: 'With end-to-end UX and UI design across web and mobile, from discovery and journey mapping to wireframes, prototypes, and build-ready interfaces — working closely with product and engineering.',
   },
   {
     id: 'card3',
     bg: CARD_COLORS.card3,
-    title: 'Clarifying complex product problems',
-    description: 'Making sense of messy requirements, edge cases, and constraints before they become expensive.',
+    title: 'Product strategy & problem-solving',
+    description: 'Clarifying complex product requirements through research, user flows, and information architecture to support scale and long-term product growth.',
   },
   {
     id: 'card4',
     bg: CARD_COLORS.card4,
-    title: 'Turning complexity into usable interfaces',
-    description: 'Designing calm, structured experiences for data-heavy and AI-led products.',
+    title: 'Design systems & complex interfaces',
+    description: 'Designing clear interfaces for data-heavy and AI-led products, using scalable UI patterns and design systems teams can build on.',
   },
 ]
 

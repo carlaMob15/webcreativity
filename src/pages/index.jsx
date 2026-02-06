@@ -86,8 +86,8 @@ const Home = ({ siteSettings, projects, homePageData }) => {
                   {/* Body Copy */}
                   <div className="text-lg text-neutral-800 dark:text-neutral-100 max-w-2xl text-left flex-1 min-w-0">
                     <div className="leading-relaxed">
-                      <p className="mb-4">Hello, I&apos;m Carla - a UK-based Senior Product Designer (UI/UX) with 10+ years of experience designing clear, practical digital products across web and mobile.</p>
-                      <p>I&apos;ve mainly worked on B2B SaaS and data-heavy platforms, including AI-led products, where the challenge is turning complex systems into calm, usable experiences and building design foundations teams can grow with.</p>
+                      <p className="mb-4">Hello, I&apos;m Carla — a UK-based Senior Product Designer (UI/UX) with 10+ years of experience designing clear, practical digital products across web and mobile.</p>
+                      <p>I&apos;ve mostly worked on B2B SaaS and data-heavy platforms, including AI-led products, helping teams make complex systems clear, structured, and usable. I bring that same approach to any product that values clarity, structure, and thoughtful design.</p>
                     </div>
                   </div>
                 </div>

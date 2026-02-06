@@ -25,6 +25,7 @@
     "@sanity/image-url": "^1.1.0",
     "@sanity/vision": "^3.91.0",
     "@swc/helpers": "^0.5.1",
+    "@vercel/analytics": "^1.6.1",
     "autoprefixer": "^10.4.12",
     "clsx": "^2.0.0",
     "fast-glob": "^3.2.11",

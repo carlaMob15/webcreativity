@@ -1,6 +1,8 @@
 import Head from 'next/head'
+import { useRef } from 'react'
 import { motion } from 'framer-motion'
 import { Container } from '../components/Container'
+import { AvailableForWorkPill } from '../components/AvailableForWorkPill'
 import { ProjectCard } from '../components/ProjectCard'
 import ContactPurpleBlock from '../components/ContactPurpleBlock'
 import WhatICanHelpWith from '../components/WhatICanHelpWith'
@@ -12,6 +14,7 @@ import siteMetadata from '../data/siteMetadata'
 import { projectsData } from '../data/projectsData'
 
 const Home = ({ siteSettings, projects, homePageData }) => {
+  const heroRef = useRef(null)
   // Use Sanity data if available, otherwise fall back to static data
   const currentSiteSettings = siteSettings || siteMetadata
   const currentProjects = (projects && projects.length > 0) ? projects : projectsData
@@ -59,7 +62,7 @@ const Home = ({ siteSettings, projects, homePageData }) => {
         {/* Main Content */}
         <div className="relative z-0">
           {/* Hero Section */}
-          <Container className="mt-24 sm:mt-32">
+          <Container ref={heroRef} className="mt-24 sm:mt-32">
             <FadeIn>
               <div className="max-w-4xl">
                 <motion.h1 
@@ -144,6 +147,7 @@ const Home = ({ siteSettings, projects, homePageData }) => {
             <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" siteSettings={currentSiteSettings} />
           </Container>
         </div>
+        <AvailableForWorkPill heroRef={heroRef} />
       </main>
     </>
   )

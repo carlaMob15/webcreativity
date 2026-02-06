@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Container } from '../components/Container'
 import { ProjectCard } from '../components/ProjectCard'
 import ContactPurpleBlock from '../components/ContactPurpleBlock'
+import WhatICanHelpWith from '../components/WhatICanHelpWith'
 import OptimizedImage from '../components/OptimizedImage'
 import { FadeIn, FadeInStagger } from '../components/Motion'
 import Link from 'next/link'
@@ -90,12 +91,12 @@ const Home = ({ siteSettings, projects, homePageData }) => {
                     </div>
                   </div>
                 </div>
-                {/* Scroll to explore */}
+                {/* Scroll to explore – extra padding so it stays visible above the stacking cards */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5, duration: 1 }}
-                  className="flex flex-col items-center gap-2 mt-20 sm:mt-24"
+                  className="relative z-10 flex flex-col items-center gap-2 mt-20 sm:mt-24 pb-24 md:pb-32"
                 >
                   <span className="text-base md:text-lg text-neutral-400 font-medium">Scroll to explore</span>
                   <span className="text-xl md:text-2xl text-neutral-400 animate-bounce">↓</span>
@@ -103,6 +104,9 @@ const Home = ({ siteSettings, projects, homePageData }) => {
               </div>
             </FadeIn>
           </Container>
+
+          {/* What I can help with – scroll-driven stacking cards */}
+          <WhatICanHelpWith />
 
           {/* Projects Grid */}
           <Container className="mt-32 sm:mt-40">

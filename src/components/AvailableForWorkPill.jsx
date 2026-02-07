@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const AVATAR_SRC = '/images/hero-avatar.jpg'
+const AVATAR_SRC = '/images/hero-avatar.jpg?v=2'
 const CONTACT_HREF = '/contact'
 const DEFAULT_SCROLL_THRESHOLD = 250
 

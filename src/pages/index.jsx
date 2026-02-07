@@ -78,7 +78,7 @@ const Home = ({ siteSettings, projects, homePageData }) => {
                   {/* Hero avatar - circular; on mobile: larger and centered */}
                   <div className="relative flex-shrink-0 w-40 h-40 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden self-center sm:self-auto">
                     <OptimizedImage
-                      src="/images/hero-avatar.jpg"
+                      src="/images/hero-avatar.jpg?v=2"
                       alt="Carla"
                       fill
                       className="object-cover"

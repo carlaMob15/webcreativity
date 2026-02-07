@@ -42,15 +42,15 @@ export default function Projects({ projectsPageData, projects }) {
   return (
     <>
       <PageSEO 
-        title={currentPageData.seoTitle || currentPageData.title || "Work"}
-        description={currentPageData.seoDescription || currentPageData.description || "Work samples and case studies showcasing my expertise in design and development"}
+        title={currentPageData.seoTitle || currentPageData.title || "Projects"}
+        description={currentPageData.seoDescription || currentPageData.description || "Selected work across web, mobile, and SaaS products"}
       />
       <SimpleLayout>
         <h1 className="text-4xl font-bold tracking-tight text-zinc-800 dark:text-zinc-100 sm:text-5xl mb-8">
-          {currentPageData.title || "Work"}
+          {currentPageData.title || "Projects"}
         </h1>
         <p className="text-lg text-neutral-600 dark:text-neutral-400 mb-12">
-          {currentPageData.description || "Our Work – UX/UI Projects Across Web, Mobile & SaaS"}
+          {currentPageData.description || "Selected work across web, mobile, and SaaS products"}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-7xl">
           {currentProjects.filter(Boolean).map((project) => (

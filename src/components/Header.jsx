@@ -12,38 +12,56 @@ import { Button } from './Button'
 import siteMetadata from '../data/siteMetadata'
 
 function NavItem({ href, children }) {
-  let isActive = useRouter().pathname === href
+  const { pathname } = useRouter()
+  const isActive =
+    pathname === href || (href !== '/' && pathname.startsWith(href + '/'))
 
   return (
     <Link
       href={href}
       className={clsx(
-        'relative text-sm transition-colors duration-300',
+        'relative inline-block pb-1.5 text-sm transition-colors duration-300',
         isActive
           ? 'text-neutral-900 dark:text-white'
           : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
       )}
     >
-      {children}
+      <span className="relative">
+        {children}
+        {isActive && (
+          <span
+            className="absolute left-1/2 -translate-x-1/2 bottom-[-5px] h-1 w-5 rounded-full bg-[#6366f1]"
+            aria-hidden="true"
+          />
+        )}
+      </span>
     </Link>
   )
 }
 
 function MobileNavItem({ href, children, onClick }) {
-  let isActive = useRouter().pathname === href
+  const { pathname } = useRouter()
+  const isActive =
+    pathname === href || (href !== '/' && pathname.startsWith(href + '/'))
 
   return (
     <Link
       href={href}
       onClick={onClick}
       className={clsx(
-        'block py-4 text-base font-medium transition-all duration-300 ease-in-out',
+        'relative block py-4 text-base font-medium transition-all duration-300 ease-in-out rounded-r',
         'hover:translate-x-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900',
         isActive
-          ? 'text-primary-500'
+          ? '-ml-6 pl-6 text-[#6366f1] dark:text-primary-400'
           : 'text-neutral-600 hover:text-primary-500 dark:text-neutral-400 dark:hover:text-primary-400'
       )}
     >
+      {isActive && (
+        <span
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 rounded-full bg-[#6366f1]"
+          aria-hidden="true"
+        />
+      )}
       {children}
     </Link>
   )

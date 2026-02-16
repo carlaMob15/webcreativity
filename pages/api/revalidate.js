@@ -14,7 +14,6 @@ export default async function handler(req, res) {
         // Revalidate all pages when site settings change
         await res.revalidate('/')
         await res.revalidate('/about')
-        await res.revalidate('/services')
         await res.revalidate('/contact')
         await res.revalidate('/projects')
         break
@@ -23,7 +22,6 @@ export default async function handler(req, res) {
         // Revalidate all pages when navigation changes
         await res.revalidate('/')
         await res.revalidate('/about')
-        await res.revalidate('/services')
         await res.revalidate('/contact')
         await res.revalidate('/projects')
         break
@@ -36,11 +34,16 @@ export default async function handler(req, res) {
         }
         break
       
+      case 'servicesPage':
+        // About page content (Sanity doc type is still "servicesPage")
+        await res.revalidate('/about')
+        break
+      
       case 'offering':
       case 'testimonial':
-        // Revalidate services and home page
+        // Revalidate about page and home page
         await res.revalidate('/')
-        await res.revalidate('/services')
+        await res.revalidate('/about')
         break
       
       default:

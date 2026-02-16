@@ -29,7 +29,7 @@ const siteMetadata = {
   // Adding navigation links that are referenced in the Header component
   siteNavLinks: [
     { name: 'Projects', href: '/projects' },
-    { name: 'About', href: '/services' },
+    { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' }
   ],
   analytics: {

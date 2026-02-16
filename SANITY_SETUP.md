@@ -8,7 +8,7 @@ This doc explains how the portfolio is connected to Sanity so you can safely mak
 |-------|----------|--------|
 | **Sanity client** | `lib/sanity.js` | Reads `NEXT_PUBLIC_SANITY_PROJECT_ID` and `NEXT_PUBLIC_SANITY_DATASET` (fallbacks: `dvy4l5vj`, `production`). Used by the Next app to fetch content. |
 | **Queries** | `lib/sanity-queries.js` | GROQ queries for projects, home, services, testimonials, site settings, etc. Imports `client` from `lib/sanity.js`. |
-| **Schemas** | `sanity.config.js` | Defines document types: `project`, `offering`, `testimonial`, `siteSettings`, `navigationLink`, `experience`, `homePage`, `servicesPage`, `projectsPage`. Same projectId/dataset as client. |
+| **Schemas** | `sanity.config.js` | Defines document types: `project`, `offering`, `testimonial`, `siteSettings`, `navigationLink`, `experience`, `homePage`, `aboutPage` (document type `servicesPage` in Sanity), `projectsPage`. Same projectId/dataset as client. |
 | **Studio** | `sanity.cli.js` | Studio host: `webcreativity` → **https://webcreativity.sanity.studio**.
 | **Studio redirect** | `pages/studio/[[...index]].js` | `/studio` on the site redirects to the hosted Studio above. |
 | **Revalidation API** | `pages/api/revalidate.js` | Webhook endpoint. When Sanity sends a POST with `?secret=SANITY_REVALIDATE_SECRET` and body `{ _type, slug? }`, the site revalidates the right pages (e.g. project slug → `/projects`, `/projects/[slug]`). |

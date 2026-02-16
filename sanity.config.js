@@ -427,9 +427,9 @@ const homePageSchema = {
   ],
 }
 
-const servicesPageSchema = {
-  name: 'servicesPage',
-  title: 'Services Page',
+const aboutPageSchema = {
+  name: 'servicesPage', // kept for existing data; content is the About page
+  title: 'About Page',
   type: 'document',
   fields: [
     {
@@ -473,7 +473,7 @@ const servicesPageSchema = {
       name: 'showTestimonials',
       title: 'Show Testimonials Section',
       type: 'boolean',
-      description: 'Toggle to show/hide the testimonials section on the services page',
+      description: 'Toggle to show/hide the testimonials section on the about page',
     },
     {
       name: 'testimonialsToShow',
@@ -485,7 +485,7 @@ const servicesPageSchema = {
           to: [{ type: 'testimonial' }],
         },
       ],
-      description: 'Select which testimonials to display on the services page',
+      description: 'Select which testimonials to display on the about page',
     },
     {
       name: 'howWeWorkTitle',
@@ -584,7 +584,7 @@ export default defineConfig({
       navigationLinkSchema,
       experienceSchema,
       homePageSchema,
-      servicesPageSchema,
+      aboutPageSchema,
       projectsPageSchema,
     ],
   },

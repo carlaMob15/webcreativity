@@ -6,6 +6,15 @@ import rehypePrism from '@mapbox/rehype-prism'
 const nextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'mdx'],
   reactStrictMode: true,
+  async redirects() {
+    return [
+      {
+        source: '/services',
+        destination: '/about',
+        permanent: true, // 301
+      },
+    ]
+  },
   images: {
     domains: ['picsum.photos', 'via.placeholder.com', 'images.unsplash.com', 'cdn.sanity.io'],
     unoptimized: true,

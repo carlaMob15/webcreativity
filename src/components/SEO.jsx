@@ -1,9 +1,12 @@
 import Head from 'next/head';
 import siteMetadata from '../data/siteMetadata';
 
-export function PageSEO({ title, description }) {
+export function PageSEO({ title, description, canonical: canonicalPath }) {
   const pageTitle = title ? `${title} - ${siteMetadata.author}` : siteMetadata.title;
   const pageDesc = description || siteMetadata.description;
+  const canonicalUrl = canonicalPath
+    ? (canonicalPath.startsWith('http') ? canonicalPath : `${siteMetadata.siteUrl || ''}${canonicalPath}`)
+    : null;
 
   return (
     <Head>
@@ -15,6 +18,7 @@ export function PageSEO({ title, description }) {
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
       <meta name="twitter:description" content={description} />
+      {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
     </Head>
   );
 }

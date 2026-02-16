@@ -2,14 +2,101 @@ import { defineConfig } from 'sanity'
 import { deskTool } from 'sanity/desk'
 import { visionTool } from '@sanity/vision'
 
-// Define the schemas based on actual usage
-// Single project document: source of truth for Work thumbnails AND project detail (case study) page
+// — Section types for flexible project detail page builder (reorderable)
+const textSectionSchema = {
+  name: 'textSection',
+  title: 'Text Section',
+  type: 'object',
+  fields: [
+    { name: 'heading', title: 'Heading', type: 'string' },
+    {
+      name: 'content',
+      title: 'Content',
+      type: 'array',
+      of: [{ type: 'block' }],
+    },
+  ],
+  preview: {
+    select: { heading: 'heading' },
+    prepare: ({ heading }) => ({ title: heading || 'Text section' }),
+  },
+}
+
+const imageSectionSchema = {
+  name: 'imageSection',
+  title: 'Image Section',
+  type: 'object',
+  fields: [
+    { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
+    { name: 'alt', title: 'Alt text', type: 'string' },
+    { name: 'caption', title: 'Caption', type: 'string' },
+    {
+      name: 'width',
+      title: 'Width',
+      type: 'string',
+      options: {
+        list: [
+          { value: 'standard', title: 'Standard' },
+          { value: 'wide', title: 'Wide' },
+        ],
+        layout: 'radio',
+      },
+      initialValue: 'standard',
+    },
+  ],
+  preview: {
+    select: { caption: 'caption' },
+    prepare: ({ caption }) => ({ title: caption || 'Image section' }),
+  },
+}
+
+const imageGridSectionSchema = {
+  name: 'imageGridSection',
+  title: 'Image Grid Section',
+  type: 'object',
+  fields: [
+    { name: 'heading', title: 'Heading', type: 'string', description: 'Optional' },
+    {
+      name: 'columns',
+      title: 'Columns',
+      type: 'number',
+      options: { list: [2, 3, 4], layout: 'radio' },
+      validation: (Rule) => Rule.required().min(2).max(4),
+    },
+    {
+      name: 'items',
+      title: 'Items',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
+            { name: 'alt', title: 'Alt text', type: 'string' },
+            { name: 'caption', title: 'Caption', type: 'string' },
+          ],
+          preview: {
+            select: { caption: 'caption' },
+            prepare: ({ caption }) => ({ title: caption || 'Grid image' }),
+          },
+        },
+      ],
+    },
+  ],
+  preview: {
+    select: { heading: 'heading', columns: 'columns' },
+    prepare: ({ heading, columns }) => ({ title: heading || `Image grid (${columns || 2} cols)` }),
+  },
+}
+
+// Single project document: flexible CMS only (no legacy fields).
+// Thumbnail + hero = mainImage; page content = sections (textSection, imageSection, imageGridSection).
 const projectSchema = {
   name: 'project',
   title: 'Project',
   type: 'document',
   fields: [
-    // — Card / list (Work page)
+    // — Core (required for meta)
     {
       name: 'title',
       title: 'Title',
@@ -20,60 +107,21 @@ const projectSchema = {
       name: 'slug',
       title: 'Slug',
       type: 'slug',
-      options: {
-        source: 'title',
-        maxLength: 96,
-      },
+      options: { source: 'title', maxLength: 96 },
       validation: (Rule) => Rule.required(),
     },
     {
-      name: 'tags',
-      title: 'Tags',
+      name: 'chips',
+      title: 'Chips',
       type: 'array',
       of: [{ type: 'string' }],
-      description: 'Shown as pills on the card (e.g. "Mobile App", "B2B", "Healthcare")',
+      description: 'Pills on cards and detail (e.g. "Mobile App", "B2B")',
     },
     {
-      name: 'shortDescription',
-      title: 'Short Description',
+      name: 'intro',
+      title: 'Intro',
       type: 'text',
-      description: 'Shown on the Work card and as meta description.',
-    },
-    {
-      name: 'thumbnailImage',
-      title: 'Thumbnail Image',
-      type: 'image',
-      options: { hotspot: true },
-      description: 'Image for the Work list card. Fallback: Hero Image.',
-    },
-    {
-      name: 'publishedAt',
-      title: 'Published date',
-      type: 'datetime',
-      description: 'Used to sort projects (newest first). Fallback: creation date.',
-    },
-    // — Case study page
-    {
-      name: 'heroImage',
-      title: 'Hero Image',
-      type: 'image',
-      options: { hotspot: true },
-      description: 'Main hero image on the project detail page.',
-    },
-    {
-      name: 'heroImageAlt',
-      title: 'Hero Image Alt',
-      type: 'string',
-    },
-    {
-      name: 'overview',
-      title: 'Overview',
-      type: 'text',
-    },
-    {
-      name: 'liveUrl',
-      title: 'Live URL',
-      type: 'url',
+      description: 'Short paragraph under the title on the detail page.',
     },
     {
       name: 'client',
@@ -81,14 +129,19 @@ const projectSchema = {
       type: 'string',
     },
     {
-      name: 'timeline',
-      title: 'Timeline / Year',
+      name: 'year',
+      title: 'Year',
       type: 'string',
-      description: 'e.g. "2024" or "2020 - 2023"',
+      description: 'e.g. "2024" or "2020 – 2023"',
     },
     {
-      name: 'services',
-      title: 'Services',
+      name: 'product',
+      title: 'Product',
+      type: 'string',
+    },
+    {
+      name: 'role',
+      title: 'Role',
       type: 'string',
     },
     {
@@ -96,94 +149,45 @@ const projectSchema = {
       title: 'Tools',
       type: 'array',
       of: [{ type: 'string' }],
-      description: 'e.g. Figma, Sketch, React',
+      description: 'e.g. Figma, React',
+    },
+    // — Main image (thumbnail + hero)
+    {
+      name: 'mainImage',
+      title: 'Main Image',
+      type: 'image',
+      options: { hotspot: true },
+      description: 'Used as project thumbnail (grid, home) and hero on the detail page.',
     },
     {
-      name: 'challenge',
-      title: 'The Challenge',
-      type: 'text',
+      name: 'thumbnailSummary',
+      title: 'Thumbnail Summary',
+      type: 'string',
+      description: 'Short text used in grid cards.',
     },
     {
-      name: 'solution',
-      title: 'The Solution',
-      type: 'text',
-    },
-    {
-      name: 'impact',
-      title: 'Project Impact & Reflection',
-      type: 'text',
-    },
-    {
-      name: 'gallery',
-      title: 'Gallery',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
-            { name: 'caption', title: 'Caption', type: 'string' },
-            { name: 'alt', title: 'Alt text', type: 'string' },
-          ],
-          preview: {
-            select: { caption: 'caption' },
-            prepare: ({ caption }) => ({ title: caption || 'Gallery image' }),
-          },
-        },
-      ],
-    },
-    {
-      name: 'technicalApproach',
-      title: 'Technical Approach',
-      type: 'array',
-      of: [{ type: 'string' }],
-    },
-    {
-      name: 'technicalApproachImages',
-      title: 'Technical Approach Images',
-      type: 'array',
-      of: [
-        {
-          type: 'object',
-          fields: [
-            { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
-            { name: 'caption', title: 'Caption', type: 'string' },
-            { name: 'alt', title: 'Alt text', type: 'string' },
-          ],
-          preview: {
-            select: { caption: 'caption' },
-            prepare: ({ caption }) => ({ title: caption || 'Tech approach image' }),
-          },
-        },
-      ],
-    },
-    {
-      name: 'impactImage',
-      title: 'Impact Image',
-      type: 'object',
-      fields: [
-        { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
-        { name: 'caption', title: 'Caption', type: 'string' },
-        { name: 'alt', title: 'Alt text', type: 'string' },
-      ],
-    },
-    // Legacy / optional
-    {
-      name: 'description',
-      title: 'Description (legacy)',
-      type: 'text',
-      description: 'Fallback for short description if not set.',
-    },
-    {
-      name: 'featured',
-      title: 'Featured',
+      name: 'isFeatured',
+      title: 'Featured on Home',
       type: 'boolean',
+      initialValue: false,
     },
     {
-      name: 'order',
-      title: 'Order',
+      name: 'featuredOrder',
+      title: 'Featured Order',
       type: 'number',
-      description: 'Optional manual order override.',
+      description: 'Order on homepage when featured (lower = first).',
+    },
+    // — Flexible page builder (reorderable)
+    {
+      name: 'sections',
+      title: 'Sections',
+      type: 'array',
+      of: [
+        { type: 'textSection' },
+        { type: 'imageSection' },
+        { type: 'imageGridSection' },
+      ],
+      description: 'Build the project detail page. Drag to reorder.',
     },
   ],
 }
@@ -570,6 +574,9 @@ export default defineConfig({
   
   schema: {
     types: [
+      textSectionSchema,
+      imageSectionSchema,
+      imageGridSectionSchema,
       projectSchema,
       offeringSchema,
       testimonialSchema,

@@ -17,16 +17,17 @@ import { projectsData } from '../src/data/projectsData'
 function normalizeFeaturedProject(cmsProject) {
   if (!cmsProject) return null
   const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
-  const thumb = cmsProject.thumbnailImage || cmsProject.heroImage
-  const imageUrl = thumb ? urlFor(thumb).width(800).height(600).url() : ''
+  const imageUrl = cmsProject.mainImage
+    ? urlFor(cmsProject.mainImage).width(800).height(600).url()
+    : ''
   return {
     slug,
     title: cmsProject.title,
     image: imageUrl,
-    shortDescription: cmsProject.shortDescription || cmsProject.description || '',
-    description: cmsProject.shortDescription || cmsProject.description || '',
+    shortDescription: cmsProject.thumbnailSummary || '',
+    description: cmsProject.thumbnailSummary || '',
     client: cmsProject.client || '',
-    timeline: cmsProject.timeline || '',
+    timeline: cmsProject.year || '',
   }
 }
 

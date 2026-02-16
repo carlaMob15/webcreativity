@@ -1,18 +1,58 @@
-import { useRouter } from 'next/router';
 import Image from 'next/image';
 import Head from 'next/head';
 import { motion, AnimatePresence } from 'framer-motion';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
-import { useState, useEffect } from 'react';
-import { Container } from '../../components/Container';
-import { ProjectCard } from '../../components/ProjectCard';
-import ContactPurpleBlock from '../../components/ContactPurpleBlock';
-import BackToTop from '../../components/BackToTop';
-import { AvailableForWorkPill } from '../../components/AvailableForWorkPill';
-import { projectsData } from '../../data/projectsData';
+import { useState, useEffect, useMemo } from 'react';
+import { PortableText } from '@portabletext/react';
+import { Container } from '../../src/components/Container';
+import { ProjectCard } from '../../src/components/ProjectCard';
+import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
+import BackToTop from '../../src/components/BackToTop';
+import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill';
+import { projectsData } from '../../src/data/projectsData';
+import { getProjects, getProjectBySlug } from '../../lib/sanity-queries';
+import { urlFor } from '../../lib/sanity';
 import { SiFigma, SiReact, SiTailwindcss, SiNextdotjs, SiMongodb, SiStripe, SiStorybook, SiConfluence, SiJira, SiSketch, SiInvision, SiMiro } from 'react-icons/si';
 import { HiMagnifyingGlass, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
+
+// Replace undefined with null so Next.js getStaticProps can serialize (JSON does not support undefined)
+function sanitizeForSerialization(value) {
+  if (value === undefined) return null
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(sanitizeForSerialization)
+  const out = {}
+  for (const key of Object.keys(value)) {
+    const v = value[key]
+    out[key] = v === undefined ? null : sanitizeForSerialization(v)
+  }
+  return out
+}
+
+// Normalize CMS for card, merge with legacy, dedupe by slug (used for “More projects”)
+function buildMergedProjectsList(normalizedCmsForCard, legacyProjects) {
+  const cms = normalizedCmsForCard ?? []
+  const legacy = legacyProjects ?? []
+  const cmsSlugs = new Set(cms.map((p) => p.slug ?? ''))
+  const legacyOnly = legacy.filter((p) => !cmsSlugs.has(p.slug ?? ''))
+  return [...cms, ...legacyOnly]
+}
+
+function normalizeCmsForCard(cmsProject) {
+  if (!cmsProject) return null
+  const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
+  const imageUrl = cmsProject.mainImage
+    ? urlFor(cmsProject.mainImage).width(800).height(600).url()
+    : ''
+  return {
+    slug,
+    title: cmsProject.title,
+    image: imageUrl,
+    projectType: Array.isArray(cmsProject.chips) && cmsProject.chips.length ? cmsProject.chips.join(', ') : '',
+    shortDescription: cmsProject.thumbnailSummary || '',
+    description: cmsProject.thumbnailSummary || '',
+  }
+}
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -52,46 +92,84 @@ const tagColors = [
   'bg-lime-100 text-lime-800',
 ];
 
-export default function ProjectDetail() {
-  const router = useRouter();
-  const { slug } = router.query;
+export default function ProjectDetail({ project, otherProjects, projectVariant = 'legacy', slug: slugProp }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Add useEffect to handle responsive behavior
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
     };
-    
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const project = projectsData.find((p) => p.slug === slug);
-
+  // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env)
   if (!project) {
-    return <div>Project not found</div>;
+    return (
+      <>
+        <Head>
+          <title>Project not found</title>
+        </Head>
+        <Container className="pt-24 pb-32 px-4 sm:px-8 md:px-12">
+          <div className="max-w-xl mx-auto text-center space-y-4">
+            <h1 className="text-2xl font-semibold text-zinc-800 dark:text-zinc-100">Project not found</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              No project found for <strong>{slugProp || 'this slug'}</strong>. Check that the slug exists in Sanity (published) or in legacy data.
+            </p>
+            <a href="/projects" className="inline-block text-indigo-600 dark:text-indigo-400 hover:underline">
+              ← Back to projects
+            </a>
+          </div>
+        </Container>
+      </>
+    );
   }
 
-  // Sort other projects by most recent year (descending)
-  const otherProjects = projectsData
-    .filter(p => p.slug !== slug)
-    .sort((a, b) => {
-      const getYear = (timeline) => {
-        if (!timeline) return 0;
-        const match = timeline.match(/\d{4}/g);
-        return match ? parseInt(match[match.length - 1], 10) : 0;
-      };
-      return getYear(b.timeline) - getYear(a.timeline);
-    });
+  // otherProjects already passed from getStaticProps (merged list without current, card-normalized)
+  const otherProjectsList = otherProjects || [];
+  const sections = Array.isArray(project?.sections) ? project.sections : [];
+  // CMS = flexible layout (mainImage + sections). Legacy = hardcoded projectsData layout (gallery, overview, etc.).
+  const useCmsLayout = projectVariant === 'cms' || (project && (project.mainImage != null || Array.isArray(project.sections) || (project.slug && typeof project.slug === 'object' && project.slug.current)));
+
+  // Lightbox slides: CMS from mainImage + section images; legacy from image + gallery.
+  const lightboxSlides = useMemo(() => {
+    if (useCmsLayout) {
+      const slides = [];
+      if (project.mainImage) {
+        try {
+          slides.push({ src: urlFor(project.mainImage).width(1200).url(), alt: project.title || 'Project image' });
+        } catch (_) {}
+      }
+      (project.sections || []).forEach((section) => {
+        if (section._type === 'imageSection' && section.image) {
+          try {
+            slides.push({ src: urlFor(section.image).width(1200).url(), alt: section.alt || '' });
+          } catch (_) {}
+        }
+        if (section._type === 'imageGridSection' && section.items) {
+          (section.items || []).forEach((item) => {
+            if (item.image) {
+              try {
+                slides.push({ src: urlFor(item.image).width(1200).url(), alt: item.alt || '' });
+              } catch (_) {}
+            }
+          });
+        }
+      });
+      return slides;
+    }
+    return [
+      { src: project.image, alt: project.imageAlt || project.title },
+      ...(project.gallery || []).map((image, index) => ({ src: image, alt: project.galleryAlt?.[index] || `Gallery image ${index + 1}` }))
+    ];
+  }, [useCmsLayout, project]);
 
   const projectsPerPage = isMobile ? 1 : 3;
-  const totalPages = Math.ceil(otherProjects.length / projectsPerPage);
+  const totalPages = Math.ceil(otherProjectsList.length / projectsPerPage);
 
   const slideVariants = {
     enter: (direction) => ({
@@ -128,7 +206,7 @@ export default function ProjectDetail() {
     setCurrentPage((prev) => (prev < totalPages - 1 ? prev + 1 : prev));
   };
 
-  const currentProjects = otherProjects.slice(
+  const currentProjects = otherProjectsList.slice(
     currentPage * projectsPerPage,
     (currentPage + 1) * projectsPerPage
   );
@@ -142,11 +220,205 @@ export default function ProjectDetail() {
     <>
       <Head>
         <title>{project.title} - Project Details</title>
-        <meta name="description" content={project.description} />
+        <meta name="description" content={project.thumbnailSummary || project.intro || (project.description || '')} />
       </Head>
 
       <Container className="pt-24 pb-32 md:pt-32 md:pb-40 px-4 sm:px-8 md:px-12">
         <BackToTop />
+        {useCmsLayout ? (
+          /* New CMS layout: meta + mainImage hero + flexible sections */
+          <>
+            <motion.div
+              className="max-w-3xl space-y-16 mb-24 md:mb-32 mx-auto"
+              initial="initial"
+              animate="animate"
+              variants={fadeIn}
+            >
+              <div className="space-y-8">
+                {project.chips && project.chips.length > 0 && (
+                  <div className="flex flex-wrap gap-3 md:gap-4">
+                    {project.chips.map((chip, index) => (
+                      <span
+                        key={index}
+                        className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
+                      >
+                        {chip}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight md:leading-tight">
+                  {project.title}
+                </h1>
+                {project.intro && (
+                  <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 mt-4">
+                    {project.intro}
+                  </p>
+                )}
+              </div>
+              {/* Meta block */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 pt-4">
+                {project.client && (
+                  <div>
+                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Client</h3>
+                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.client}</p>
+                  </div>
+                )}
+                {project.year && (
+                  <div>
+                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Year</h3>
+                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.year}</p>
+                  </div>
+                )}
+                {project.product && (
+                  <div>
+                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Product</h3>
+                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.product}</p>
+                  </div>
+                )}
+                {project.role && (
+                  <div>
+                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Role</h3>
+                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.role}</p>
+                  </div>
+                )}
+                {project.tools && project.tools.length > 0 && (
+                  <div className={project.client || project.year || project.product || project.role ? 'md:col-span-2' : ''}>
+                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Tools</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {project.tools.map((tool, index) => {
+                        const Icon = techIcons[tool.trim()];
+                        const colorClass = tagColors[index % tagColors.length];
+                        return (
+                          <span
+                            key={index}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-sm ${colorClass}`}
+                          >
+                            {Icon && <Icon className="h-4 w-4 mr-2" />}
+                            <span>{tool.trim()}</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+            {/* Hero: mainImage */}
+            {project.mainImage && (() => {
+              try {
+                const heroSrc = urlFor(project.mainImage).width(1200).url();
+                if (!heroSrc) return null;
+                return (
+              <motion.div
+                className="relative aspect-[16/10] w-full mb-24 md:mb-32 rounded-3xl overflow-hidden shadow-lg group cursor-pointer"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+                onClick={() => handleImageClick(0)}
+              >
+                <Image
+                  src={heroSrc}
+                  alt={project.title || 'Project image'}
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
+                  priority
+                  quality={90}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                    <HiMagnifyingGlass className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+              </motion.div>
+                );
+              } catch (_) {
+                return null;
+              }
+            })()}
+            {/* Sections */}
+            <motion.div
+              className="space-y-20 md:space-y-32"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {sections.map((section, idx) => {
+                if (section._type === 'textSection') {
+                  return (
+                    <div key={section._key || idx} className="space-y-6">
+                      {section.heading && (
+                        <h2 className="text-2xl font-semibold tracking-tight">{section.heading}</h2>
+                      )}
+                      {section.content && (
+                        <div className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 prose prose-zinc dark:prose-invert max-w-none">
+                          <PortableText value={section.content} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                if (section._type === 'imageSection' && section.image) {
+                  const imgUrl = urlFor(section.image).width(1200).url();
+                  const isWide = section.width === 'wide';
+                  return (
+                    <div key={section._key || idx} className="space-y-4">
+                      <div className={`relative aspect-[16/9] w-full rounded-2xl overflow-hidden ${isWide ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
+                        <Image
+                          src={imgUrl}
+                          alt={section.alt || ''}
+                          fill
+                          className="object-cover"
+                          sizes={isWide ? '(min-width: 1280px) 1200px, 100vw' : '(min-width: 1280px) 896px, 100vw'}
+                          quality={85}
+                        />
+                      </div>
+                      {section.caption && (
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center">{section.caption}</p>
+                      )}
+                    </div>
+                  );
+                }
+                if (section._type === 'imageGridSection' && section.items && section.items.length > 0) {
+                  const cols = section.columns === 4 ? 4 : section.columns === 3 ? 3 : 2;
+                  return (
+                    <div key={section._key || idx} className="space-y-6">
+                      {section.heading && (
+                        <h2 className="text-2xl font-semibold tracking-tight">{section.heading}</h2>
+                      )}
+                      <div className={`grid grid-cols-1 gap-8 ${cols >= 2 ? 'md:grid-cols-2' : ''} ${cols >= 3 ? 'lg:grid-cols-3' : ''} ${cols >= 4 ? 'xl:grid-cols-4' : ''}`}>
+                        {section.items.map((item, i) => (
+                          item.image && (
+                            <div key={i} className="space-y-2">
+                              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden">
+                                <Image
+                                  src={urlFor(item.image).width(800).url()}
+                                  alt={item.alt || ''}
+                                  fill
+                                  className="object-cover"
+                                  sizes="(min-width: 768px) 50vw, 100vw"
+                                  quality={80}
+                                />
+                              </div>
+                              {item.caption && (
+                                <p className="text-sm text-zinc-500 dark:text-zinc-400">{item.caption}</p>
+                              )}
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })}
+            </motion.div>
+          </>
+        ) : (
+          /* Legacy layout (projectsData or old CMS shape) */
+          <>
         {/* Project Header */}
         <motion.div 
           className="max-w-3xl space-y-16 mb-24 md:mb-32 mx-auto"
@@ -156,7 +428,7 @@ export default function ProjectDetail() {
         >
           <div className="space-y-8">
             <div className="flex flex-wrap gap-3 md:gap-4">
-              {project.projectType.split(',').map((type, index) => (
+              {(project.projectType || '').split(',').filter(Boolean).map((type, index) => (
                 <span 
                   key={index} 
                   className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
@@ -969,6 +1241,8 @@ export default function ProjectDetail() {
             </>
           )}
         </motion.div>
+          </>
+        )}
       </Container>
 
       {/* More Projects Section with Background */}
@@ -1020,9 +1294,10 @@ export default function ProjectDetail() {
                         }}
                         className="h-full"
                       >
-                        <ProjectCard 
+                        <ProjectCard
                           project={project}
                           noBackground
+                          hideTags
                         />
                       </motion.div>
                     ))}
@@ -1086,14 +1361,8 @@ export default function ProjectDetail() {
       <Lightbox
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}
-        index={currentImageIndex}
-        slides={[
-          { src: project.image, alt: project.imageAlt || project.title },
-          ...project.gallery.map((image, index) => ({ 
-            src: image,
-            alt: project.galleryAlt?.[index] || `Gallery image ${index + 1}`
-          }))
-        ]}
+        index={Math.min(currentImageIndex, Math.max(0, lightboxSlides.length - 1))}
+        slides={lightboxSlides}
         carousel={{
           padding: "16px",
           spacing: "16px",
@@ -1209,4 +1478,53 @@ export default function ProjectDetail() {
       />
     </>
   );
-} 
+}
+
+export async function getStaticPaths() {
+  let cmsSlugs = [];
+  try {
+    const cmsProjects = await getProjects();
+    cmsSlugs = (cmsProjects || []).map((p) => p.slug?.current ?? p.slug).filter(Boolean);
+  } catch (e) {
+    console.warn('getStaticPaths: getProjects failed, using legacy slugs only', e?.message);
+  }
+  const legacySlugs = projectsData.map((p) => p.slug).filter(Boolean);
+  const allSlugs = [...new Set([...cmsSlugs, ...legacySlugs])];
+  return {
+    paths: allSlugs.map((slug) => ({ params: { slug } })),
+    fallback: 'blocking',
+  };
+}
+
+export async function getStaticProps({ params }) {
+  const rawSlug = params?.slug;
+  if (!rawSlug) return { notFound: true };
+  const slug = typeof rawSlug === 'string' ? rawSlug.toLowerCase().trim() : rawSlug;
+
+  let cmsProject = null;
+  let cmsProjects = [];
+  try {
+    [cmsProject, cmsProjects] = await Promise.all([
+      getProjectBySlug(slug),
+      getProjects(),
+    ]);
+  } catch (e) {
+    console.warn('getStaticProps: Sanity fetch failed, falling back to legacy', e?.message);
+  }
+
+  const normalizedCmsForCard = (cmsProjects || []).map(normalizeCmsForCard).filter(Boolean);
+  const merged = buildMergedProjectsList(normalizedCmsForCard, projectsData);
+  const otherProjects = merged.filter((p) => (p.slug || '').toLowerCase() !== slug);
+
+  if (cmsProject) {
+    return { props: sanitizeForSerialization({ project: cmsProject, otherProjects, projectVariant: 'cms', slug }), revalidate: 60 };
+  }
+
+  const legacyProject = projectsData.find((p) => (p.slug || '').toLowerCase() === slug);
+  if (legacyProject) {
+    return { props: sanitizeForSerialization({ project: legacyProject, otherProjects, projectVariant: 'legacy', slug }), revalidate: 60 };
+  }
+  // No project in Sanity or legacy: render page with friendly "Not found" instead of Next.js 404
+  return { props: sanitizeForSerialization({ project: null, otherProjects: merged, projectVariant: 'legacy', slug }), revalidate: 60 };
+}
+ 

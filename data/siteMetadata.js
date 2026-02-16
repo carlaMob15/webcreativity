@@ -37,10 +37,6 @@ const siteMetadata = {
       href: '/about',
     },
     {
-      name: 'Services',
-      href: '/services',
-    },
-    {
       name: 'Projects',
       href: '/projects',
     },

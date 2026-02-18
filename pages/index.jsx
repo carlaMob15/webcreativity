@@ -18,7 +18,6 @@ import { mergeProjectLists } from '../lib/projectMerge'
 function normalizeFeaturedProject(cmsProject) {
   if (!cmsProject) return null
   const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
-  // Home featured cards display large (full-width + grid); use 1600px for sharp retina
   const imageUrl = cmsProject.mainImage
     ? urlFor(cmsProject.mainImage).width(1600).quality(88).auto('format').url()
     : ''
@@ -26,6 +25,7 @@ function normalizeFeaturedProject(cmsProject) {
     slug,
     title: cmsProject.title,
     image: imageUrl,
+    mainImage: cmsProject.mainImage?.asset ? cmsProject.mainImage : null,
     shortDescription: cmsProject.thumbnailSummary || '',
     description: cmsProject.thumbnailSummary || '',
     client: cmsProject.client || '',

@@ -160,8 +160,17 @@ const About = ({ aboutPageData, featuredTestimonial }) => {
             <span className="inline-block align-baseline ml-2 w-2.5 h-2.5 md:w-4 md:h-4 rounded-full bg-[rgb(99,102,241)]" style={{ verticalAlign: 'baseline' }}></span>
           </h1>
           <div className="text-lg text-neutral-600 dark:text-neutral-400 mb-4 text-left">
-            {data.heroDescription ? (
-              <p className="mb-4">{data.heroDescription}</p>
+            {Array.isArray(data.heroDescription) ? (
+              <PortableText
+                value={data.heroDescription}
+                components={{
+                  block: {
+                    normal: ({ children }) => <p className="mb-4">{children}</p>,
+                  },
+                }}
+              />
+            ) : data.heroDescription ? (
+              <p className="mb-4" style={{ whiteSpace: 'pre-line' }}>{data.heroDescription}</p>
             ) : (
               <>
                 <p className="mb-4">

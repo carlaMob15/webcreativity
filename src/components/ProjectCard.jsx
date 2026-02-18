@@ -1,4 +1,5 @@
 import OptimizedImage from './OptimizedImage'
+import SanityImage from './SanityImage'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import clsx from 'clsx'
@@ -70,18 +71,29 @@ export function ProjectCard({ project, className, noBackground, hideTags }) {
     >
       <Link 
         href={`/projects/${slug}`}
-        className="block relative aspect-[4/3] overflow-hidden rounded-2xl cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-300 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900"
+        className="block rounded-2xl cursor-pointer shadow-sm hover:shadow-md transition-shadow duration-300 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-[rgb(99,102,241)] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-neutral-900 overflow-hidden"
         aria-label={`View project: ${project.title}`}
       >
-        <OptimizedImage
-          src={project.image || "/placeholder.jpg"}
-          alt={`${project.title} project preview`}
-          fill
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          priority={false}
-          quality={85}
-        />
+        {project.mainImage ? (
+          <SanityImage
+            image={project.mainImage}
+            alt={`${project.title} project preview`}
+            priority={false}
+            className="w-full h-auto rounded-2xl"
+          />
+        ) : (
+          <div className="block relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
+            <OptimizedImage
+              src={project.image || "/placeholder.jpg"}
+              alt={`${project.title} project preview`}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              priority={false}
+              quality={85}
+            />
+          </div>
+        )}
         <div 
           className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           aria-hidden="true"
@@ -171,6 +183,7 @@ ProjectCard.propTypes = {
     slug: PropTypes.string,
     title: PropTypes.string.isRequired,
     image: PropTypes.string,
+    mainImage: PropTypes.object,
     projectType: PropTypes.string,
     category: PropTypes.string,
     client: PropTypes.string,

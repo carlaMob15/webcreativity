@@ -7,6 +7,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { PortableText } from '@portabletext/react';
 import { Container } from '../../src/components/Container';
 import { ProjectCard } from '../../src/components/ProjectCard';
+import SanityImage from '../../src/components/SanityImage';
 import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
 import BackToTop from '../../src/components/BackToTop';
 import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill';
@@ -99,40 +100,15 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env)
-  if (!project) {
-    return (
-      <>
-        <Head>
-          <title>Project not found</title>
-        </Head>
-        <Container className="pt-24 pb-32 px-4 sm:px-8 md:px-12">
-          <div className="max-w-xl mx-auto text-center space-y-4">
-            <h1 className="text-2xl font-semibold text-zinc-800 dark:text-zinc-100">Project not found</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              No project found for <strong>{slugProp || 'this slug'}</strong>. Check that the slug exists in Sanity (published) or in legacy data.
-            </p>
-            <a href="/projects" className="inline-block text-indigo-600 dark:text-indigo-400 hover:underline">
-              ← Back to projects
-            </a>
-          </div>
-        </Container>
-      </>
-    );
-  }
-
-  // otherProjects already passed from getStaticProps (merged list without current, card-normalized)
+  // Derived values and hooks must run before any early return (rules-of-hooks)
   const otherProjectsList = otherProjects || [];
   const sections = Array.isArray(project?.sections) ? project.sections : [];
-  // CMS = flexible layout (mainImage + sections). Legacy = hardcoded projectsData layout (gallery, overview, etc.).
   const useCmsLayout = projectVariant === 'cms' || (project && (project.mainImage != null || Array.isArray(project.sections) || (project.slug && typeof project.slug === 'object' && project.slug.current)));
-
-  // Sanity image URL helpers: performance-balanced sharpness (retina), WebP/AVIF via auto format
   const sanityHeroUrl = (img) => urlFor(img).width(2000).quality(88).auto('format').url();
   const sanityBodyUrl = (img) => urlFor(img).width(1600).quality(88).auto('format').url();
 
-  // Lightbox slides: CMS from mainImage + section images; legacy from image + gallery.
   const lightboxSlides = useMemo(() => {
+    if (!project) return [];
     if (useCmsLayout) {
       const slides = [];
       if (project.mainImage) {
@@ -163,6 +139,28 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
       ...(project.gallery || []).map((image, index) => ({ src: image, alt: project.galleryAlt?.[index] || `Gallery image ${index + 1}` }))
     ];
   }, [useCmsLayout, project]);
+
+  // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env)
+  if (!project) {
+    return (
+      <>
+        <Head>
+          <title>Project not found</title>
+        </Head>
+        <Container className="pt-24 pb-32 px-4 sm:px-8 md:px-12">
+          <div className="max-w-xl mx-auto text-center space-y-4">
+            <h1 className="text-2xl font-semibold text-zinc-800 dark:text-zinc-100">Project not found</h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              No project found for <strong>{slugProp || 'this slug'}</strong>. Check that the slug exists in Sanity (published) or in legacy data.
+            </p>
+            <a href="/projects" className="inline-block text-indigo-600 dark:text-indigo-400 hover:underline">
+              ← Back to projects
+            </a>
+          </div>
+        </Container>
+      </>
+    );
+  }
 
   const projectsPerPage = isMobile ? 1 : 3;
   const totalPages = Math.ceil(otherProjectsList.length / projectsPerPage);
@@ -300,31 +298,26 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 )}
               </div>
             </motion.div>
-            {/* Hero: mainImage — w=2000, quality 88, auto format for sharp retina display */}
+            {/* Hero: mainImage — intrinsic layout, no fill/object-cover */}
             {project.mainImage && (() => {
               try {
-                const heroSrc = sanityHeroUrl(project.mainImage);
-                if (!heroSrc) return null;
                 return (
               <motion.div
-                className="relative aspect-[16/10] w-full mb-24 md:mb-32 rounded-3xl overflow-hidden shadow-lg group cursor-pointer"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6 }}
+                className="relative w-full mb-24 md:mb-32 rounded-3xl overflow-hidden shadow-lg cursor-pointer"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
                 onClick={() => handleImageClick(0)}
               >
-                <Image
-                  src={heroSrc}
+                <SanityImage
+                  image={project.mainImage}
                   alt={project.title || 'Project image'}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(max-width: 768px) 100vw, 1100px"
                   priority
-                  quality={90}
+                  className="w-full h-auto rounded-3xl"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" aria-hidden />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden>
+                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <HiMagnifyingGlass className="w-8 h-8 text-white" />
                   </div>
                 </div>
@@ -357,19 +350,15 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                   );
                 }
                 if (section._type === 'imageSection' && section.image) {
-                  const imgUrl = sanityBodyUrl(section.image);
                   const isWide = section.width === 'wide';
                   return (
                     <div key={section._key || idx} className="space-y-4">
-                      <div className={`relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800/50 ${isWide ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
-                        <Image
-                          src={imgUrl}
+                      <div className={`w-full ${isWide ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
+                        <SanityImage
+                          image={section.image}
                           alt={section.alt || ''}
-                          fill
-                          className="object-contain"
-                          sizes={isWide ? '(max-width: 768px) 100vw, 1200px' : '(max-width: 768px) 100vw, 1100px'}
-                          quality={88}
-                          loading="lazy"
+                          priority={false}
+                          className="w-full h-auto rounded-2xl"
                         />
                       </div>
                       {section.caption && (
@@ -389,17 +378,12 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                         {section.items.map((item, i) => (
                           item.image && (
                             <div key={i} className="space-y-2">
-                              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800/50">
-                                <Image
-                                  src={sanityBodyUrl(item.image)}
-                                  alt={item.alt || ''}
-                                  fill
-                                  className="object-contain"
-                                  sizes="(max-width: 768px) 100vw, 600px"
-                                  quality={88}
-                                  loading="lazy"
-                                />
-                              </div>
+                              <SanityImage
+                                image={item.image}
+                                alt={item.alt || ''}
+                                priority={false}
+                                className="w-full h-auto rounded-2xl"
+                              />
                               {item.caption && (
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400">{item.caption}</p>
                               )}

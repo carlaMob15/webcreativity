@@ -14,7 +14,7 @@ function normalizeCmsProjectForCard(cmsProject) {
   if (!cmsProject) return null
   const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
   const imageUrl = cmsProject.mainImage
-    ? urlFor(cmsProject.mainImage).width(800).height(600).url()
+    ? urlFor(cmsProject.mainImage).width(1200).quality(88).auto('format').url()
     : ''
   return {
     slug,

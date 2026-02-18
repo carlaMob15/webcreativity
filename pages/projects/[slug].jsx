@@ -127,26 +127,30 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
   // CMS = flexible layout (mainImage + sections). Legacy = hardcoded projectsData layout (gallery, overview, etc.).
   const useCmsLayout = projectVariant === 'cms' || (project && (project.mainImage != null || Array.isArray(project.sections) || (project.slug && typeof project.slug === 'object' && project.slug.current)));
 
+  // Sanity image URL helpers: performance-balanced sharpness (retina), WebP/AVIF via auto format
+  const sanityHeroUrl = (img) => urlFor(img).width(2000).quality(88).auto('format').url();
+  const sanityBodyUrl = (img) => urlFor(img).width(1600).quality(88).auto('format').url();
+
   // Lightbox slides: CMS from mainImage + section images; legacy from image + gallery.
   const lightboxSlides = useMemo(() => {
     if (useCmsLayout) {
       const slides = [];
       if (project.mainImage) {
         try {
-          slides.push({ src: urlFor(project.mainImage).width(1200).url(), alt: project.title || 'Project image' });
+          slides.push({ src: sanityHeroUrl(project.mainImage), alt: project.title || 'Project image' });
         } catch (_) {}
       }
       (project.sections || []).forEach((section) => {
         if (section._type === 'imageSection' && section.image) {
           try {
-            slides.push({ src: urlFor(section.image).width(1200).url(), alt: section.alt || '' });
+            slides.push({ src: sanityBodyUrl(section.image), alt: section.alt || '' });
           } catch (_) {}
         }
         if (section._type === 'imageGridSection' && section.items) {
           (section.items || []).forEach((item) => {
             if (item.image) {
               try {
-                slides.push({ src: urlFor(item.image).width(1200).url(), alt: item.alt || '' });
+                slides.push({ src: sanityBodyUrl(item.image), alt: item.alt || '' });
               } catch (_) {}
             }
           });
@@ -296,10 +300,10 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 )}
               </div>
             </motion.div>
-            {/* Hero: mainImage */}
+            {/* Hero: mainImage — w=2000, quality 88, auto format for sharp retina display */}
             {project.mainImage && (() => {
               try {
-                const heroSrc = urlFor(project.mainImage).width(1200).url();
+                const heroSrc = sanityHeroUrl(project.mainImage);
                 if (!heroSrc) return null;
                 return (
               <motion.div
@@ -314,7 +318,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                   alt={project.title || 'Project image'}
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
+                  sizes="(max-width: 768px) 100vw, 1100px"
                   priority
                   quality={90}
                 />
@@ -353,18 +357,19 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                   );
                 }
                 if (section._type === 'imageSection' && section.image) {
-                  const imgUrl = urlFor(section.image).width(1200).url();
+                  const imgUrl = sanityBodyUrl(section.image);
                   const isWide = section.width === 'wide';
                   return (
                     <div key={section._key || idx} className="space-y-4">
-                      <div className={`relative aspect-[16/9] w-full rounded-2xl overflow-hidden ${isWide ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
+                      <div className={`relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800/50 ${isWide ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
                         <Image
                           src={imgUrl}
                           alt={section.alt || ''}
                           fill
-                          className="object-cover"
-                          sizes={isWide ? '(min-width: 1280px) 1200px, 100vw' : '(min-width: 1280px) 896px, 100vw'}
-                          quality={85}
+                          className="object-contain"
+                          sizes={isWide ? '(max-width: 768px) 100vw, 1200px' : '(max-width: 768px) 100vw, 1100px'}
+                          quality={88}
+                          loading="lazy"
                         />
                       </div>
                       {section.caption && (
@@ -384,14 +389,15 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                         {section.items.map((item, i) => (
                           item.image && (
                             <div key={i} className="space-y-2">
-                              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden">
+                              <div className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-800/50">
                                 <Image
-                                  src={urlFor(item.image).width(800).url()}
+                                  src={sanityBodyUrl(item.image)}
                                   alt={item.alt || ''}
                                   fill
-                                  className="object-cover"
-                                  sizes="(min-width: 768px) 50vw, 100vw"
-                                  quality={80}
+                                  className="object-contain"
+                                  sizes="(max-width: 768px) 100vw, 600px"
+                                  quality={88}
+                                  loading="lazy"
                                 />
                               </div>
                               {item.caption && (

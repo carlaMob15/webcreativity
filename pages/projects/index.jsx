@@ -4,7 +4,7 @@ import ContactPurpleBlock from '../../src/components/ContactPurpleBlock'
 import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill'
 import { Container } from '../../src/components/Container'
 import { ProjectCard } from '../../src/components/ProjectCard'
-import { projectsData } from '../../src/data/projectsData'
+import { legacyProjects } from '../../data/legacy-projects'
 import { getProjectsPage, getProjects } from '../../lib/sanity-queries'
 import { urlFor } from '../../lib/sanity'
 import { mergeProjectLists } from '../../lib/projectMerge'
@@ -30,7 +30,7 @@ function normalizeCmsProjectForCard(cmsProject) {
 
 export default function Projects({ projectsPageData, projects }) {
   const currentPageData = projectsPageData || {}
-  const currentProjects = mergeProjectLists(projects, projectsData)
+  const currentProjects = mergeProjectLists(projects, legacyProjects)
 
   return (
     <>

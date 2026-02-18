@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { getSiteSettings, getFeaturedProjects, getHomePage } from '../lib/sanity-queries'
 import { urlFor } from '../lib/sanity'
 import siteMetadata from '../src/data/siteMetadata'
-import { projectsData } from '../src/data/projectsData'
+import { legacyProjects } from '../data/legacy-projects'
 import { mergeProjectLists } from '../lib/projectMerge'
 
 function normalizeFeaturedProject(cmsProject) {
@@ -193,7 +193,7 @@ export async function getStaticProps() {
       getHomePage()
     ])
 
-    const featuredProjects = getFeaturedProjectsList(cmsFeatured, projectsData)
+    const featuredProjects = getFeaturedProjectsList(cmsFeatured, legacyProjects)
 
     return {
       props: {
@@ -206,7 +206,7 @@ export async function getStaticProps() {
   } catch (error) {
     console.error('Error fetching data from Sanity:', error)
 
-    const featuredProjects = getFeaturedProjectsList([], projectsData)
+    const featuredProjects = getFeaturedProjectsList([], legacyProjects)
 
     return {
       props: {

@@ -1,4 +1,8 @@
-export const projectsData = [
+// Temporary legacy projects file.
+// Once all projects are migrated to CMS,
+// this file and its import can be safely deleted.
+
+export const legacyProjects = [
   {
     title: 'My Sky App – Companion Redesign Sprint',
     description: 'Future-facing concepts for a more personal and connected TV companion app—designed in one week as part of an ideation sprint.',
@@ -434,4 +438,4 @@ To bridge communication, we introduced shared documentation in Confluence and se
 
 While I didn't build the Storybook toolkit myself, I worked alongside the development team to help mirror the design system from Figma into React. We defined component variants, explored interaction patterns, and created a shared process that supported better cross-team collaboration. It was rewarding to see how this system brought clarity and consistency to projects across the organisation.`
   }
-]; 
+];

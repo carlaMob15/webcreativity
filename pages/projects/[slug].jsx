@@ -12,7 +12,7 @@ import ZoomableSanityImage from '../../src/components/ZoomableSanityImage';
 import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
 import BackToTop from '../../src/components/BackToTop';
 import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill';
-import { projectsData } from '../../src/data/projectsData';
+import { legacyProjects } from '../../data/legacy-projects';
 import { getProjects, getProjectBySlug } from '../../lib/sanity-queries';
 import { urlFor } from '../../lib/sanity';
 import { mergeProjectLists, normalizeSlug } from '../../lib/projectMerge';
@@ -435,7 +435,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
             </motion.div>
           </>
         ) : (
-          /* Legacy layout (projectsData or old CMS shape) */
+          /* Legacy layout (legacyProjects or old CMS shape) */
           <>
         {/* Project Header */}
         <motion.div 
@@ -1361,7 +1361,7 @@ export async function getStaticPaths() {
   } catch (e) {
     console.warn('getStaticPaths: getProjects failed, using legacy slugs only', e?.message);
   }
-  const legacySlugs = projectsData.map((p) => p.slug).filter(Boolean);
+  const legacySlugs = legacyProjects.map((p) => p.slug).filter(Boolean);
   // Dedupe by normalized slug so /projects/foo and /projects/Foo don't both get paths
   const allSlugs = [...new Set([...cmsSlugs.map(normalizeSlug), ...legacySlugs.map(normalizeSlug)])];
   return {
@@ -1387,14 +1387,14 @@ export async function getStaticProps({ params }) {
   }
 
   const normalizedCmsForCard = (cmsProjects || []).map(normalizeCmsForCard).filter(Boolean);
-  const merged = mergeProjectLists(normalizedCmsForCard, projectsData);
+  const merged = mergeProjectLists(normalizedCmsForCard, legacyProjects);
   const otherProjects = merged.filter((p) => normalizeSlug(p.slug) !== slug);
 
   if (cmsProject) {
     return { props: sanitizeForSerialization({ project: cmsProject, otherProjects, projectVariant: 'cms', slug }), revalidate: 60 };
   }
 
-  const legacyProject = projectsData.find((p) => normalizeSlug(p.slug) === slug);
+  const legacyProject = legacyProjects.find((p) => normalizeSlug(p.slug) === slug);
   if (legacyProject) {
     return { props: sanitizeForSerialization({ project: legacyProject, otherProjects, projectVariant: 'legacy', slug }), revalidate: 60 };
   }

@@ -75,23 +75,27 @@ export function ProjectCard({ project, className, noBackground, hideTags }) {
         aria-label={`View project: ${project.title}`}
       >
         {project.mainImage ? (
-          <SanityImage
-            image={project.mainImage}
-            alt={`${project.title} project preview`}
-            priority={false}
-            className="w-full h-auto rounded-2xl"
-          />
+          <div className="overflow-hidden rounded-2xl">
+            <SanityImage
+              image={project.mainImage}
+              alt={`${project.title} project preview`}
+              priority={false}
+              className="w-full h-auto rounded-2xl transition-transform duration-500 ease-out transform-gpu group-hover:scale-[1.04]"
+            />
+          </div>
         ) : (
           <div className="block relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
-            <OptimizedImage
-              src={project.image || "/placeholder.jpg"}
-              alt={`${project.title} project preview`}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              priority={false}
-              quality={85}
-            />
+            <div className="relative h-full w-full transition-transform duration-500 ease-out transform-gpu group-hover:scale-[1.04]">
+              <OptimizedImage
+                src={project.image || "/placeholder.jpg"}
+                alt={`${project.title} project preview`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                priority={false}
+                quality={85}
+              />
+            </div>
           </div>
         )}
         {!hideTags && (

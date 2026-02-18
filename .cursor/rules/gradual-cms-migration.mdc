@@ -1,0 +1,31 @@
+---
+description: Gradual Sanity CMS migration — keep hardcoded projects, prefer CMS when slug matches
+globs: pages/projects/**/*.jsx, pages/index.jsx, lib/projectMerge.js, lib/sanity-queries.js, src/data/projectsData.js
+alwaysApply: false
+---
+
+# Gradual CMS Migration (Projects)
+
+Projects are migrated from hardcoded data to Sanity CMS gradually. Do not remove hardcoded projects or legacy layout until all are migrated.
+
+## Rules
+
+1. **Keep hardcoded projects working**  
+   All projects in `src/data/projectsData.js` must keep working. Their URLs must keep working. Do not delete or rewrite existing hardcoded templates.
+
+2. **Merge CMS + legacy everywhere**  
+   Any list that shows projects (Projects grid, Featured projects, "More projects" section) must:
+   - Show both CMS projects and hardcoded (legacy) projects.
+   - If a CMS project has the **same slug** as a hardcoded project → **prefer CMS** and **exclude** the hardcoded one from the list.
+
+3. **Single source of truth**  
+   Use `lib/projectMerge.js` for all merge/dedupe logic:
+   - `normalizeSlug(slug)` — for case-insensitive slug comparison.
+   - `mergeProjectLists(cmsCards, legacyProjects)` — CMS first, then legacy only when no CMS project has that slug.
+
+4. **Routing `/projects/[slug]`**  
+   - First check if a CMS project exists for that slug → render CMS flexible layout (sections).
+   - If not → fall back to hardcoded project layout/data.
+
+5. **Later (not now)**  
+   Once all projects are in CMS, we will remove the hardcoded data file and legacy layout. Do not do that until explicitly requested.

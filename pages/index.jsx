@@ -13,6 +13,7 @@ import { getSiteSettings, getFeaturedProjects, getHomePage } from '../lib/sanity
 import { urlFor } from '../lib/sanity'
 import siteMetadata from '../src/data/siteMetadata'
 import { projectsData } from '../src/data/projectsData'
+import { mergeProjectLists } from '../lib/projectMerge'
 
 function normalizeFeaturedProject(cmsProject) {
   if (!cmsProject) return null
@@ -33,9 +34,7 @@ function normalizeFeaturedProject(cmsProject) {
 
 function getFeaturedProjectsList(cmsFeatured, legacy) {
   const normalized = (cmsFeatured || []).map(normalizeFeaturedProject).filter(Boolean)
-  const cmsSlugs = new Set(normalized.map((p) => p.slug).filter(Boolean))
-  const legacyOnly = (legacy || []).filter((p) => !cmsSlugs.has(p.slug))
-  const merged = [...normalized, ...legacyOnly]
+  const merged = mergeProjectLists(normalized, legacy || [])
   const getYear = (timeline) => {
     if (!timeline) return 0
     const match = String(timeline).match(/\d{4}/g)

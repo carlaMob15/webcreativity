@@ -13,6 +13,7 @@ import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill'
 import { projectsData } from '../../src/data/projectsData';
 import { getProjects, getProjectBySlug } from '../../lib/sanity-queries';
 import { urlFor } from '../../lib/sanity';
+import { mergeProjectLists, normalizeSlug } from '../../lib/projectMerge';
 import { SiFigma, SiReact, SiTailwindcss, SiNextdotjs, SiMongodb, SiStripe, SiStorybook, SiConfluence, SiJira, SiSketch, SiInvision, SiMiro } from 'react-icons/si';
 import { HiMagnifyingGlass, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 
@@ -27,15 +28,6 @@ function sanitizeForSerialization(value) {
     out[key] = v === undefined ? null : sanitizeForSerialization(v)
   }
   return out
-}
-
-// Normalize CMS for card, merge with legacy, dedupe by slug (used for “More projects”)
-function buildMergedProjectsList(normalizedCmsForCard, legacyProjects) {
-  const cms = normalizedCmsForCard ?? []
-  const legacy = legacyProjects ?? []
-  const cmsSlugs = new Set(cms.map((p) => p.slug ?? ''))
-  const legacyOnly = legacy.filter((p) => !cmsSlugs.has(p.slug ?? ''))
-  return [...cms, ...legacyOnly]
 }
 
 function normalizeCmsForCard(cmsProject) {
@@ -1489,7 +1481,8 @@ export async function getStaticPaths() {
     console.warn('getStaticPaths: getProjects failed, using legacy slugs only', e?.message);
   }
   const legacySlugs = projectsData.map((p) => p.slug).filter(Boolean);
-  const allSlugs = [...new Set([...cmsSlugs, ...legacySlugs])];
+  // Dedupe by normalized slug so /projects/foo and /projects/Foo don't both get paths
+  const allSlugs = [...new Set([...cmsSlugs.map(normalizeSlug), ...legacySlugs.map(normalizeSlug)])];
   return {
     paths: allSlugs.map((slug) => ({ params: { slug } })),
     fallback: 'blocking',
@@ -1513,14 +1506,14 @@ export async function getStaticProps({ params }) {
   }
 
   const normalizedCmsForCard = (cmsProjects || []).map(normalizeCmsForCard).filter(Boolean);
-  const merged = buildMergedProjectsList(normalizedCmsForCard, projectsData);
-  const otherProjects = merged.filter((p) => (p.slug || '').toLowerCase() !== slug);
+  const merged = mergeProjectLists(normalizedCmsForCard, projectsData);
+  const otherProjects = merged.filter((p) => normalizeSlug(p.slug) !== slug);
 
   if (cmsProject) {
     return { props: sanitizeForSerialization({ project: cmsProject, otherProjects, projectVariant: 'cms', slug }), revalidate: 60 };
   }
 
-  const legacyProject = projectsData.find((p) => (p.slug || '').toLowerCase() === slug);
+  const legacyProject = projectsData.find((p) => normalizeSlug(p.slug) === slug);
   if (legacyProject) {
     return { props: sanitizeForSerialization({ project: legacyProject, otherProjects, projectVariant: 'legacy', slug }), revalidate: 60 };
   }

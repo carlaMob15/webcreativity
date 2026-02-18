@@ -7,6 +7,7 @@ import { ProjectCard } from '../../src/components/ProjectCard'
 import { projectsData } from '../../src/data/projectsData'
 import { getProjectsPage, getProjects } from '../../lib/sanity-queries'
 import { urlFor } from '../../lib/sanity'
+import { mergeProjectLists } from '../../lib/projectMerge'
 
 // Normalize a CMS project to card shape (slug, title, image, projectType, shortDescription)
 function normalizeCmsProjectForCard(cmsProject) {
@@ -27,18 +28,9 @@ function normalizeCmsProjectForCard(cmsProject) {
   }
 }
 
-// CMS projects first, then legacy; dedupe by slug (CMS wins)
-function mergeProjects(normalizedCmsProjects, legacyProjects) {
-  const cms = normalizedCmsProjects ?? []
-  const legacy = legacyProjects ?? []
-  const cmsSlugs = new Set(cms.map((p) => p.slug ?? ''))
-  const legacyOnly = legacy.filter((p) => !cmsSlugs.has(p.slug ?? ''))
-  return [...cms, ...legacyOnly]
-}
-
 export default function Projects({ projectsPageData, projects }) {
   const currentPageData = projectsPageData || {}
-  const currentProjects = mergeProjects(projects, projectsData)
+  const currentProjects = mergeProjectLists(projects, projectsData)
 
   return (
     <>

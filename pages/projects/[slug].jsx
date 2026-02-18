@@ -286,7 +286,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                   {project.title}
                 </h1>
                 {project.intro && (
-                  <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 mt-4">
+                  <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 mt-4 whitespace-pre-line">
                     {project.intro}
                   </p>
                 )}

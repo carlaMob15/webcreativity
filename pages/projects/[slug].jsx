@@ -140,7 +140,8 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
     ];
   }, [useCmsLayout, project]);
 
-  // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env)
+  // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env).
+  // Common locally: Sanity unreachable or returns no data, so only legacy slugs work; production (Vercel + env) is unaffected.
   if (!project) {
     return (
       <>

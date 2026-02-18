@@ -458,11 +458,6 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
             <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight md:leading-tight">
               {project.title}
             </h1>
-            {project.slug === 'personal-trainer-app' && (
-              <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 mt-4">
-                The task was to create a fresh brand identity and final UI for a personal trainer app. The goal? To provide an easy and intuitive way for personal trainers to manage their clients, streamline bookings, and keep track of payments effortlessly. It needed to be sleek, modern, and user-friendly.
-              </p>
-            )}
             {project.liveUrl && (
               <div className="mt-6">
                 <a 
@@ -569,146 +564,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          {project.slug === 'personal-trainer-app' ? (
-            <>
-              {/* Our Solution */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold tracking-tight">Our Solution</h2>
-                <div className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 space-y-4">
-                  {project.solution.split('\n\n').map((para, idx) => (
-                    <p key={idx}>{para}</p>
-                  ))}
-                </div>
-                {/* Solution Gallery */}
-                <div className="space-y-12 mt-12">
-                  {/* Large session scheduling image */}
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5 }}
-                    className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                    onClick={() => handleImageClick(1)}
-                  >
-                    <Image
-                      src={project.gallery[1]}
-                      alt={project.galleryAlt?.[1] || "Session scheduling and payment processing"}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                      sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                      quality={85}
-                      loading="lazy"
-                      placeholder="blur"
-                      blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                        '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                      ).toString('base64')}`}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                      </div>
-                    </div>
-                  </motion.div>
-                  {project.galleryCaptions?.[1] && (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                      {project.galleryCaptions[1]}
-                    </p>
-                  )}
-                  {/* Two smaller images */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    {[project.gallery[0], project.gallery[2]].map((image, index) => (
-                      <div key={index}>
-                        <motion.div 
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.5, delay: (index + 1) * 0.1 }}
-                          className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                          onClick={() => handleImageClick(index === 0 ? 0 : 2)}
-                        >
-                          <Image
-                            src={image}
-                            alt={project.galleryAlt?.[index === 0 ? 0 : 2] || `Solution detail ${index + 1}`}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            sizes="(min-width: 1280px) 600px, (min-width: 768px) 384px, 100vw"
-                            quality={80}
-                            loading="lazy"
-                            placeholder="blur"
-                            blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                              '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                            ).toString('base64')}`}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                              <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                            </div>
-                          </div>
-                        </motion.div>
-                        {project.galleryCaptions?.[index === 0 ? 0 : 2] && (
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                            {project.galleryCaptions[index === 0 ? 0 : 2]}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {/* Project Impact & Reflection */}
-              <div className="space-y-6 mt-16">
-                <h2 className="text-2xl font-semibold tracking-tight">Project Impact & Reflection</h2>
-                <div className="space-y-4">
-                  {project.impact.split(/\n\s*\n/).map((para, idx) => (
-                    para.trim() && (
-                      <p key={idx} className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 mb-4">{para.trim()}</p>
-                    )
-                  ))}
-                </div>
-                {/* Impact Gallery Image */}
-                {project.gallery[3] && (
-                  <div className="mt-12">
-                    <motion.div 
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.5 }}
-                      className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                      onClick={() => handleImageClick(4)}
-                    >
-                      <Image
-                        src={project.gallery[3]}
-                        alt={project.galleryAlt?.[3] || "Project impact visualization"}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                        quality={85}
-                        loading="lazy"
-                        placeholder="blur"
-                        blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                          '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                        ).toString('base64')}`}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                    </motion.div>
-                    {project.galleryCaptions?.[3] && (
-                      <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                        {project.galleryCaptions[3]}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
+          <>
               {/* Project Overview */}
               <div className="space-y-6">
                 <h2 className="text-2xl font-semibold tracking-tight">Project overview</h2>
@@ -1257,7 +1113,6 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 </div>
               </div>
             </>
-          )}
         </motion.div>
           </>
         )}

@@ -24,7 +24,7 @@ function ZoomableSanityImage({
       type="button"
       onClick={() => onImageClick(index)}
       className={`
-        relative group overflow-hidden cursor-zoom-in block w-full text-left
+        relative group overflow-hidden cursor-pointer block w-full text-left
         ${roundedClass}
         ${wrapperClassName}
       `}

@@ -135,11 +135,6 @@ const projectSchema = {
       description: 'e.g. "2024" or "2020 – 2023"',
     },
     {
-      name: 'product',
-      title: 'Product',
-      type: 'string',
-    },
-    {
       name: 'role',
       title: 'Role',
       type: 'string',

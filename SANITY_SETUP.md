@@ -47,7 +47,7 @@ From the repo root:
 npm run studio
 ```
 
-(or `npx sanity dev`). This starts the Studio using this repo’s `sanity.config.js` (projectId `dvy4l5vj`, dataset `production`). Open the URL it prints (e.g. http://localhost:3333) and create/edit projects there — you’ll only see Title, Slug, Main Image, Chips, Intro, Client, Year, Product, Role, Tools, Thumbnail Summary, Is Featured, Featured Order, and Sections. No legacy fields.
+(or `npx sanity dev`). This starts the Studio using this repo’s `sanity.config.js` (projectId `dvy4l5vj`, dataset `production`). Open the URL it prints (e.g. http://localhost:3333) and create/edit projects there — you’ll only see Title, Slug, Main Image, Chips, Intro, Client, Year, Role, Tools, Thumbnail Summary, Is Featured, Featured Order, and Sections. No legacy fields.
 
 ## Summary
 

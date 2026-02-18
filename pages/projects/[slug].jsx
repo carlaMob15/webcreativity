@@ -291,8 +291,8 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                   </p>
                 )}
               </div>
-              {/* Meta block */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 pt-4">
+              {/* Meta block — Role gets more width (2fr) from md up so it wraps in 1–2 lines */}
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_2fr_1fr] gap-8 md:gap-12 pt-4">
                 {project.client && (
                   <div>
                     <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Client</h3>
@@ -305,20 +305,14 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                     <p className="text-base text-zinc-600 dark:text-zinc-400">{project.year}</p>
                   </div>
                 )}
-                {project.product && (
-                  <div>
-                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Product</h3>
-                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.product}</p>
-                  </div>
-                )}
                 {project.role && (
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Role</h3>
                     <p className="text-base text-zinc-600 dark:text-zinc-400">{project.role}</p>
                   </div>
                 )}
                 {project.tools && project.tools.length > 0 && (
-                  <div className={project.client || project.year || project.product || project.role ? 'md:col-span-2' : ''}>
+                  <div className={project.client || project.year || project.role ? 'md:col-span-2' : ''}>
                     <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Tools</h3>
                     <div className="flex flex-wrap gap-2">
                       {project.tools.map((tool, index) => {

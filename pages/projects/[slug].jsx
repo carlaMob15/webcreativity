@@ -8,6 +8,7 @@ import { PortableText } from '@portabletext/react';
 import { Container } from '../../src/components/Container';
 import { ProjectCard } from '../../src/components/ProjectCard';
 import SanityImage from '../../src/components/SanityImage';
+import ZoomableSanityImage from '../../src/components/ZoomableSanityImage';
 import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
 import BackToTop from '../../src/components/BackToTop';
 import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill';
@@ -106,27 +107,28 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
   const useCmsLayout = projectVariant === 'cms' || (project && (project.mainImage != null || Array.isArray(project.sections) || (project.slug && typeof project.slug === 'object' && project.slug.current)));
   const sanityHeroUrl = (img) => urlFor(img).width(2000).quality(88).auto('format').url();
   const sanityBodyUrl = (img) => urlFor(img).width(1600).quality(88).auto('format').url();
+  const sanityModalUrl = (img) => urlFor(img).width(2400).quality(90).auto('format').url();
 
   const lightboxSlides = useMemo(() => {
     if (!project) return [];
     if (useCmsLayout) {
       const slides = [];
-      if (project.mainImage) {
+      if (project.mainImage?.asset) {
         try {
-          slides.push({ src: sanityHeroUrl(project.mainImage), alt: project.title || 'Project image' });
+          slides.push({ src: sanityModalUrl(project.mainImage), alt: project.title || 'Project image' });
         } catch (_) {}
       }
       (project.sections || []).forEach((section) => {
-        if (section._type === 'imageSection' && section.image) {
+        if (section._type === 'imageSection' && section.image?.asset) {
           try {
-            slides.push({ src: sanityBodyUrl(section.image), alt: section.alt || '' });
+            slides.push({ src: sanityModalUrl(section.image), alt: section.alt || '' });
           } catch (_) {}
         }
         if (section._type === 'imageGridSection' && section.items) {
           (section.items || []).forEach((item) => {
-            if (item.image) {
+            if (item.image?.asset) {
               try {
-                slides.push({ src: sanityBodyUrl(item.image), alt: item.alt || '' });
+                slides.push({ src: sanityModalUrl(item.image), alt: item.alt || '' });
               } catch (_) {}
             }
           });
@@ -138,6 +140,44 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
       { src: project.image, alt: project.imageAlt || project.title },
       ...(project.gallery || []).map((image, index) => ({ src: image, alt: project.galleryAlt?.[index] || `Gallery image ${index + 1}` }))
     ];
+  }, [useCmsLayout, project]);
+
+  const galleryImages = useMemo(() => {
+    if (!project || !useCmsLayout) return [];
+    const list = [];
+    if (project.mainImage?.asset) {
+      list.push({ image: project.mainImage, alt: project.title || 'Project image' });
+    }
+    (project.sections || []).forEach((section) => {
+      if (section._type === 'imageSection' && section.image?.asset) {
+        list.push({ image: section.image, alt: section.alt || '' });
+      }
+      if (section._type === 'imageGridSection' && section.items) {
+        (section.items || []).forEach((item) => {
+          if (item.image?.asset) list.push({ image: item.image, alt: item.alt || '' });
+        });
+      }
+    });
+    return list;
+  }, [useCmsLayout, project]);
+
+  const galleryStartIndexBySection = useMemo(() => {
+    if (!project || !useCmsLayout || !project.sections) return [];
+    let index = project.mainImage?.asset ? 1 : 0;
+    return project.sections.map((section) => {
+      if (section._type === 'imageSection' && section.image?.asset) {
+        const start = index;
+        index += 1;
+        return start;
+      }
+      if (section._type === 'imageGridSection' && section.items?.length) {
+        const start = index;
+        const count = section.items.filter((item) => item.image?.asset).length;
+        index += count;
+        return start;
+      }
+      return null;
+    });
   }, [useCmsLayout, project]);
 
   // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env).
@@ -299,35 +339,25 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 )}
               </div>
             </motion.div>
-            {/* Hero: mainImage — intrinsic layout, no fill/object-cover */}
-            {project.mainImage && (() => {
-              try {
-                return (
+            {/* Hero: mainImage — zoomable with shared overlay + lightbox */}
+            {galleryImages.length > 0 && (
               <motion.div
-                className="relative w-full mb-24 md:mb-32 rounded-3xl overflow-hidden shadow-lg cursor-pointer"
+                className="w-full mb-24 md:mb-32 rounded-3xl overflow-hidden shadow-lg"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.5 }}
-                onClick={() => handleImageClick(0)}
               >
-                <SanityImage
-                  image={project.mainImage}
-                  alt={project.title || 'Project image'}
+                <ZoomableSanityImage
+                  image={galleryImages[0].image}
+                  alt={galleryImages[0].alt}
+                  index={0}
+                  onImageClick={handleImageClick}
                   priority
                   className="w-full h-auto rounded-3xl"
+                  roundedClass="rounded-3xl"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" aria-hidden />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none" aria-hidden>
-                  <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <HiMagnifyingGlass className="w-8 h-8 text-white" />
-                  </div>
-                </div>
               </motion.div>
-                );
-              } catch (_) {
-                return null;
-              }
-            })()}
+            )}
             {/* Sections */}
             <motion.div
               className="space-y-20 md:space-y-32"
@@ -352,14 +382,19 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 }
                 if (section._type === 'imageSection' && section.image) {
                   const isWide = section.width === 'wide';
+                  const galleryIndex = galleryStartIndexBySection[idx];
+                  if (galleryIndex == null) return null;
                   return (
                     <div key={section._key || idx} className="space-y-4">
                       <div className={`w-full ${isWide ? 'max-w-full' : 'max-w-4xl mx-auto'}`}>
-                        <SanityImage
+                        <ZoomableSanityImage
                           image={section.image}
                           alt={section.alt || ''}
+                          index={galleryIndex}
+                          onImageClick={handleImageClick}
                           priority={false}
                           className="w-full h-auto rounded-2xl"
+                          roundedClass="rounded-2xl"
                         />
                       </div>
                       {section.caption && (
@@ -370,27 +405,33 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 }
                 if (section._type === 'imageGridSection' && section.items && section.items.length > 0) {
                   const cols = section.columns === 4 ? 4 : section.columns === 3 ? 3 : 2;
+                  const sectionStart = galleryStartIndexBySection[idx];
                   return (
                     <div key={section._key || idx} className="space-y-6">
                       {section.heading && (
                         <h2 className="text-2xl font-semibold tracking-tight">{section.heading}</h2>
                       )}
                       <div className={`grid grid-cols-1 gap-8 ${cols >= 2 ? 'md:grid-cols-2' : ''} ${cols >= 3 ? 'lg:grid-cols-3' : ''} ${cols >= 4 ? 'xl:grid-cols-4' : ''}`}>
-                        {section.items.map((item, i) => (
-                          item.image && (
+                        {section.items.map((item, i) => {
+                          if (!item.image?.asset || sectionStart == null) return null;
+                          const galleryIndex = sectionStart + section.items.slice(0, i).filter((it) => it.image?.asset).length;
+                          return (
                             <div key={i} className="space-y-2">
-                              <SanityImage
+                              <ZoomableSanityImage
                                 image={item.image}
                                 alt={item.alt || ''}
+                                index={galleryIndex}
+                                onImageClick={handleImageClick}
                                 priority={false}
                                 className="w-full h-auto rounded-2xl"
+                                roundedClass="rounded-2xl"
                               />
                               {item.caption && (
                                 <p className="text-sm text-zinc-500 dark:text-zinc-400">{item.caption}</p>
                               )}
                             </div>
-                          )
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );

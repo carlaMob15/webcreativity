@@ -291,30 +291,32 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                   </p>
                 )}
               </div>
-              {/* Meta block — Role gets more width (2fr) from md up so it wraps in 1–2 lines */}
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_2fr_1fr] gap-8 md:gap-12 pt-4">
-                {project.client && (
-                  <div>
-                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Client</h3>
-                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.client}</p>
-                  </div>
-                )}
-                {project.year && (
-                  <div>
-                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Year</h3>
-                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.year}</p>
-                  </div>
-                )}
-                {project.role && (
-                  <div className="min-w-0">
-                    <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Role</h3>
-                    <p className="text-base text-zinc-600 dark:text-zinc-400">{project.role}</p>
-                  </div>
-                )}
+              {/* Meta block — 3 columns: Client | Year | Role; Tools full width below */}
+              <div className="mt-20">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-x-16 gap-y-10">
+                  {project.client && (
+                    <div>
+                      <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Client</h3>
+                      <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">{project.client}</p>
+                    </div>
+                  )}
+                  {project.year && (
+                    <div>
+                      <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Year</h3>
+                      <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">{project.year}</p>
+                    </div>
+                  )}
+                  {project.role && (
+                    <div className="min-w-0">
+                      <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Role</h3>
+                      <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">{project.role}</p>
+                    </div>
+                  )}
+                </div>
                 {project.tools && project.tools.length > 0 && (
-                  <div className={project.client || project.year || project.role ? 'md:col-span-2' : ''}>
+                  <div className="mt-14">
                     <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">Tools</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 mt-1">
                       {project.tools.map((tool, index) => {
                         const Icon = techIcons[tool.trim()];
                         const colorClass = tagColors[index % tagColors.length];
@@ -475,42 +477,43 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
             )}
           </div>
 
-          {/* Project Metadata */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 pt-4">
-            <div>
-              <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                Client
-              </h3>
-              <p className="text-base text-zinc-600 dark:text-zinc-400">
-                {project.client || 'Personal Project'}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                Year
-              </h3>
-              <p className="text-base text-zinc-600 dark:text-zinc-400">
-                {project.timeline || '2024'}
-              </p>
-            </div>
-            <div className="md:col-span-2">
-              <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                Services
-              </h3>
-              <p className="text-base text-zinc-600 dark:text-zinc-400">
-                {project.services || 'UX/UI Design, Interactive Design, Prototyping, Responsive Design'}
-              </p>
+          {/* Project Metadata — 3 columns: Client | Year | Role (Services); Tools full width below */}
+          <div className="mt-20">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-16 gap-y-10">
+              <div>
+                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
+                  Client
+                </h3>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
+                  {project.client || 'Personal Project'}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
+                  Year
+                </h3>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
+                  {project.timeline || '2024'}
+                </p>
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
+                  Services
+                </h3>
+                <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
+                  {project.services || 'UX/UI Design, Interactive Design, Prototyping, Responsive Design'}
+                </p>
+              </div>
             </div>
             {project.tools && (
-              <div>
+              <div className="mt-14">
                 <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
                   Tools
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mt-1">
                   {(Array.isArray(project.tools) ? project.tools : project.tools.split(','))
                     .map((tool, index) => {
                       const Icon = techIcons[tool.trim()];
-                      // Assign a color from the expanded palette for each tag
                       const colorClass = tagColors[index % tagColors.length];
                       return (
                         <span

@@ -17,7 +17,7 @@ This doc explains how the portfolio is connected to Sanity so you can safely mak
 ## Project detail page (case study)
 
 - **Data**: `getProjectBySlug(slug)` in `lib/sanity-queries.js` returns the full project document.
-- **Page**: `pages/projects/[slug].jsx` — CMS projects use the flexible layout (mainImage + sections only). Legacy projects (hardcoded in `data/legacy-projects.js`) use the old layout (gallery, overview, etc.). If you see “Project not found”, ensure the document is **published** in Studio and that `slug.current` matches the URL (or add the slug to legacy data in `data/legacy-projects.js`).
+- **Page**: `pages/projects/[slug].jsx` — Uses the CMS flexible layout (mainImage + sections). If you see “Project not found”, ensure the document is **published** in Studio and that `slug.current` matches the URL.
 
 ## Env vars you need
 

@@ -4,10 +4,8 @@ import ContactPurpleBlock from '../../src/components/ContactPurpleBlock'
 import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill'
 import { Container } from '../../src/components/Container'
 import { ProjectCard } from '../../src/components/ProjectCard'
-import { legacyProjects } from '../../data/legacy-projects'
 import { getProjectsPage, getProjects } from '../../lib/sanity-queries'
 import { urlFor } from '../../lib/sanity'
-import { mergeProjectLists } from '../../lib/projectMerge'
 
 // Normalize a CMS project to card shape (slug, title, image, projectType, shortDescription)
 function normalizeCmsProjectForCard(cmsProject) {
@@ -30,7 +28,7 @@ function normalizeCmsProjectForCard(cmsProject) {
 
 export default function Projects({ projectsPageData, projects }) {
   const currentPageData = projectsPageData || {}
-  const currentProjects = mergeProjectLists(projects, legacyProjects)
+  const currentProjects = projects || []
 
   return (
     <>

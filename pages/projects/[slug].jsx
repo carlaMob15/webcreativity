@@ -12,10 +12,9 @@ import ZoomableSanityImage from '../../src/components/ZoomableSanityImage';
 import ContactPurpleBlock from '../../src/components/ContactPurpleBlock';
 import BackToTop from '../../src/components/BackToTop';
 import { AvailableForWorkPill } from '../../src/components/AvailableForWorkPill';
-import { legacyProjects } from '../../data/legacy-projects';
 import { getProjects, getProjectBySlug } from '../../lib/sanity-queries';
 import { urlFor } from '../../lib/sanity';
-import { mergeProjectLists, normalizeSlug } from '../../lib/projectMerge';
+import { normalizeSlug } from '../../lib/projectMerge';
 import { SiFigma, SiReact, SiTailwindcss, SiNextdotjs, SiMongodb, SiStripe, SiStorybook, SiConfluence, SiJira, SiSketch, SiInvision, SiMiro } from 'react-icons/si';
 import { HiMagnifyingGlass, HiChevronLeft, HiChevronRight } from 'react-icons/hi2';
 
@@ -136,7 +135,7 @@ const tagColors = [
 ];
 
 
-export default function ProjectDetail({ project, otherProjects, projectVariant = 'legacy', slug: slugProp }) {
+export default function ProjectDetail({ project, otherProjects, slug: slugProp }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [currentPage, setCurrentPage] = useState(0);
@@ -154,7 +153,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
   // Derived values and hooks must run before any early return (rules-of-hooks)
   const otherProjectsList = otherProjects || [];
   const sections = Array.isArray(project?.sections) ? project.sections : [];
-  const useCmsLayout = projectVariant === 'cms' || (project && (project.mainImage != null || Array.isArray(project.sections) || (project.slug && typeof project.slug === 'object' && project.slug.current)));
+  const useCmsLayout = project && (project.mainImage != null || Array.isArray(project.sections) || (project.slug && typeof project.slug === 'object' && project.slug.current));
   const sanityHeroUrl = (img) => urlFor(img).width(2000).quality(88).auto('format').url();
   const sanityBodyUrl = (img) => urlFor(img).width(1600).quality(88).auto('format').url();
   const sanityModalUrl = (img) => urlFor(img).width(2400).quality(90).auto('format').url();
@@ -230,8 +229,6 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
     });
   }, [useCmsLayout, project]);
 
-  // Friendly "not found" when slug has no project (no Next.js 404 so we can verify slugs/env).
-  // Common locally: Sanity unreachable or returns no data, so only legacy slugs work; production (Vercel + env) is unaffected.
   if (!project) {
     return (
       <>
@@ -242,7 +239,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
           <div className="max-w-xl mx-auto text-center space-y-4">
             <h1 className="text-2xl font-semibold text-zinc-800 dark:text-zinc-100">Project not found</h1>
             <p className="text-zinc-600 dark:text-zinc-400">
-              No project found for <strong>{slugProp || 'this slug'}</strong>. Check that the slug exists in Sanity (published) or in legacy data.
+              No project found for <strong>{slugProp || 'this slug'}</strong>. Check that the slug exists in Sanity (published).
             </p>
             <a href="/projects" className="inline-block text-indigo-600 dark:text-indigo-400 hover:underline">
               ← Back to projects
@@ -310,8 +307,7 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
 
       <Container className="pt-24 pb-32 md:pt-32 md:pb-40 px-4 sm:px-8 md:px-12">
         <BackToTop />
-        {useCmsLayout ? (
-          /* New CMS layout: meta + mainImage hero + flexible sections */
+        {useCmsLayout && (
           <>
             <motion.div
               className="max-w-3xl space-y-16 mb-24 md:mb-32 mx-auto"
@@ -486,689 +482,6 @@ export default function ProjectDetail({ project, otherProjects, projectVariant =
                 return null;
               })}
             </motion.div>
-          </>
-        ) : (
-          /* Legacy layout (legacyProjects or old CMS shape) */
-          <>
-        {/* Project Header */}
-        <motion.div 
-          className="max-w-3xl space-y-16 mb-24 md:mb-32 mx-auto"
-          initial="initial"
-          animate="animate"
-          variants={fadeIn}
-        >
-          <div className="space-y-8">
-            <div className="flex flex-wrap gap-3 md:gap-4">
-              {(project.projectType || '').split(',').filter(Boolean).map((type, index) => (
-                <span 
-                  key={index} 
-                  className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400"
-                >
-                  {type.trim()}
-                </span>
-              ))}
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight md:leading-tight">
-              {project.title}
-            </h1>
-            {project.liveUrl && (
-              <div className="mt-6">
-                <a 
-                  href={project.liveUrl}
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-4 py-2 text-base font-medium text-indigo-600 dark:text-indigo-400 border-2 border-indigo-600 dark:border-indigo-400 rounded-full hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
-                >
-                  Visit the live site
-                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
-              </div>
-            )}
-          </div>
-
-          {/* Project Metadata — 3 columns: Client | Year | Role (Services); Tools full width below */}
-          <div className="mt-20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-16 gap-y-10">
-              <div>
-                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                  Client
-                </h3>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
-                  {project.client || 'Personal Project'}
-                </p>
-              </div>
-              <div>
-                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                  Year
-                </h3>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
-                  {project.timeline || '2024'}
-                </p>
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                  Services
-                </h3>
-                <p className="text-base text-zinc-600 dark:text-zinc-400 mt-1">
-                  {project.services || 'UX/UI Design, Interactive Design, Prototyping, Responsive Design'}
-                </p>
-              </div>
-            </div>
-            {project.tools && (
-              <div className="mt-14">
-                <h3 className="text-sm text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-semibold mb-2">
-                  Tools
-                </h3>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {(Array.isArray(project.tools) ? project.tools : project.tools.split(','))
-                    .map((tool, index) => {
-                      const trimmed = tool.trim();
-                      const Icon = techIcons[trimmed];
-                      const colorClass = tagColors[index % tagColors.length];
-                      return (
-                        <span
-                          key={index}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium shadow-sm ${colorClass}`}
-                        >
-                          {Icon && <Icon className="h-4 w-4" />}
-                          <span>{trimmed}</span>
-                        </span>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Main Project Image */}
-        <motion.div 
-          className="relative aspect-[16/10] w-full mb-24 md:mb-32 rounded-3xl overflow-hidden shadow-lg group cursor-pointer"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          onClick={() => handleImageClick(0)}
-        >
-          <Image
-            src={project.image}
-            alt={project.imageAlt || project.title}
-            fill
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
-            sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-            priority
-            quality={90}
-            placeholder="blur"
-            blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-              '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-            ).toString('base64')}`}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-white/10 backdrop-blur-sm p-4 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-              <HiMagnifyingGlass className="w-8 h-8 text-white" />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Project Content */}
-        <motion.div 
-          className="space-y-20 md:space-y-32"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <>
-              {/* Project Overview */}
-              <div className="space-y-6">
-                <h2 className="text-2xl font-semibold tracking-tight">Project overview</h2>
-                <p className="text-base md:text-lg text-zinc-600 dark:text-zinc-400">{project.overview}</p>
-              </div>
-              {/* Project Content */}
-              <div className="space-y-24">
-                {/* Challenge & Solution */}
-                <div className="space-y-24">
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-semibold tracking-tight">The Challenge</h2>
-                    <div className="text-base md:text-lg text-zinc-600 dark:text-zinc-400">
-                      {project.challenge.split('\n\n').map((section, idx) => {
-                        // Special handling for 'We set out to explore:'
-                        if (section.includes('We set out to explore:')) {
-                          const [title, rest] = section.split('We set out to explore:');
-                          const items = rest.split('•').map(item => item.trim()).filter(Boolean);
-                          return (
-                            <div key={idx}>
-                              <p className="mb-2 font-medium">We set out to explore:</p>
-                              <ul className="list-disc pl-6 space-y-2 mt-1">
-                                {items.map((item, itemIdx) => (
-                                  <li key={itemIdx}>{item}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          );
-                        }
-                        if (section.includes('•')) {
-                          const items = section.split('•').map(item => item.trim()).filter(Boolean);
-                          if (items.length === 1) {
-                            return <p key={idx} className="mb-4">{items[0]}</p>;
-                          }
-                          return (
-                            <ul key={idx} className="list-disc pl-6 space-y-2 mt-4">
-                              {items.map((item, itemIdx) => (
-                                <li key={itemIdx}>{item}</li>
-                              ))}
-                            </ul>
-                          );
-                        }
-                        return <p key={idx} className="mb-4">{section}</p>;
-                      })}
-                    </div>
-                  </div>
-                  <div className="space-y-6">
-                    <h2 className="text-2xl font-semibold tracking-tight">The Solution</h2>
-                    <div className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 space-y-4">
-                      {(() => {
-                        // Split by double line breaks, then process for subheaders
-                        const subheaderTitles = [
-                          'Social & Shared Viewing',
-                          'Emotion-Based Recommendations',
-                          'Smart Home Hub'
-                        ];
-                        const lines = project.solution.split('\n\n');
-                        let elements = [];
-                        lines.forEach((line, idx) => {
-                          const trimmed = line.trim();
-                          const matchedHeader = subheaderTitles.find(title => trimmed.startsWith(title));
-                          if (matchedHeader) {
-                            // Split header and the rest
-                            const [header, ...rest] = trimmed.split(/(?<=^[^:]+):?/);
-                            elements.push(
-                              <h3 key={`header-${idx}`} className="text-lg font-semibold mt-6 mb-2">{matchedHeader}</h3>
-                            );
-                            if (rest.join('').trim()) {
-                              elements.push(
-                                <p key={`para-${idx}`}>{rest.join('').replace(matchedHeader, '').replace(/^:/, '').trim()}</p>
-                              );
-                            }
-                          } else {
-                            elements.push(
-                              <p key={`para-${idx}`}>{trimmed}</p>
-                            );
-                          }
-                        });
-                        return elements;
-                      })()}
-                    </div>
-                  </div>
-                  {/* Image Grid 1 - Three large images */}
-                  <div className="space-y-12">
-                    {project.slug === 'gosure-claims-management' ? (
-                      // Three large images for GoSure project
-                      project.gallery.slice(0, 3).map((image, index) => (
-                        <div key={index} className="space-y-4">
-                          <motion.div 
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                            onClick={() => handleImageClick(index)}
-                          >
-                            <Image
-                              src={image}
-                              alt={project.galleryAlt?.[index] || `Solution detail ${index + 1}`}
-                              fill
-                              className="object-cover transition-transform duration-700 group-hover:scale-105"
-                              sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                              quality={85}
-                              loading="lazy"
-                              placeholder="blur"
-                              blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                                '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                              ).toString('base64')}`}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                              </div>
-                            </div>
-                          </motion.div>
-                          {project.galleryCaptions?.[index] && (
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                              {project.galleryCaptions[index]}
-                            </p>
-                          )}
-                        </div>
-                      ))
-                    ) : project.slug === 'covea-design-system-foundations' ? (
-                      // Single large image for Covea project
-                      <div className="space-y-4">
-                        <motion.div 
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.5 }}
-                          className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                          onClick={() => handleImageClick(0)}
-                        >
-                          <Image
-                            src={project.gallery[0]}
-                            alt={project.galleryAlt?.[0] || "Solution overview"}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                            quality={85}
-                            loading="lazy"
-                            placeholder="blur"
-                            blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                              '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                            ).toString('base64')}`}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                              <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                            </div>
-                          </div>
-                        </motion.div>
-                        {project.galleryCaptions?.[0] && (
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                            {project.galleryCaptions[0]}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      // Original layout for other projects
-                      <div className="space-y-12">
-                        {/* Large image */}
-                        <motion.div 
-                          initial={{ opacity: 0, y: 20 }}
-                          whileInView={{ opacity: 1, y: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.5 }}
-                          className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                          onClick={() => handleImageClick(0)}
-                        >
-                          <Image
-                            src={project.gallery[0]}
-                            alt={project.galleryAlt?.[0] || "Solution overview"}
-                            fill
-                            className="object-cover transition-transform duration-700 group-hover:scale-105"
-                            sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                            quality={85}
-                            loading="lazy"
-                            placeholder="blur"
-                            blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                              '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                            ).toString('base64')}`}
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                              <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                            </div>
-                          </div>
-                        </motion.div>
-                        {project.galleryCaptions?.[0] && (
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                            {project.galleryCaptions[0]}
-                          </p>
-                        )}
-                        {/* Two smaller images */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                          {project.gallery.slice(1, 3).map((image, index) => (
-                            <div key={index} className="space-y-4">
-                              <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                                onClick={() => handleImageClick(index + 1)}
-                              >
-                                <Image
-                                  src={image}
-                                  alt={project.galleryAlt?.[index + 1] || `Solution detail ${index + 1}`}
-                                  fill
-                                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                  sizes="(min-width: 1280px) 600px, (min-width: 768px) 384px, 100vw"
-                                  quality={80}
-                                  loading="lazy"
-                                  placeholder="blur"
-                                  blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                                    '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                                  ).toString('base64')}`}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                                  </div>
-                                </div>
-                              </motion.div>
-                              {project.galleryCaptions?.[index + 1] && (
-                                <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                                  {project.galleryCaptions[index + 1]}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Technical Approach */}
-                {project.technicalApproach && (
-                  <div className="mt-12">
-                    <h3 className="text-2xl font-bold mb-6">Technical Approach</h3>
-                    <div className="space-y-6">
-                      {project.technicalApproach.map((item, index) => (
-                        <p key={index} className="text-gray-700">{item}</p>
-                      ))}
-                    </div>
-                    {project.technicalApproachImages && project.technicalApproachImages.length > 0 && (
-                      <div className="mt-8 space-y-8">
-                        {project.slug === 'gosure-brand-redesign' ? (
-                          <>
-                            {/* First large image */}
-                            {project.technicalApproachImages[0] && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 0.6 }}
-                              className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                              onClick={() => handleImageClick(project.gallery.length + 4)}
-                            >
-                              <Image
-                                src={project.technicalApproachImages[0].src}
-                                alt={project.technicalApproachImages[0].alt}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                                quality={85}
-                                loading="lazy"
-                                placeholder="blur"
-                                blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                                  '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                                ).toString('base64')}`}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                  <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                                </div>
-                              </div>
-                            </motion.div>
-                            )}
-                            {project.technicalApproachImages[0]?.caption && (
-                              <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                                {project.technicalApproachImages[0].caption}
-                              </p>
-                            )}
-
-                            {/* Two small images side by side */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                              {[1, 2].map((index) => (
-                                project.technicalApproachImages[index] && (
-                                <div key={index} className="space-y-4">
-                                  <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.6, delay: index * 0.1 }}
-                                    className="relative aspect-[4/3] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                                    onClick={() => handleImageClick(project.gallery.length + 4 + index)}
-                                  >
-                                    <Image
-                                      src={project.technicalApproachImages[index].src}
-                                      alt={project.technicalApproachImages[index].alt}
-                                      fill
-                                      className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                      sizes="(min-width: 1280px) 600px, (min-width: 768px) 384px, 100vw"
-                                      quality={80}
-                                      loading="lazy"
-                                      placeholder="blur"
-                                      blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                                        '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                                      ).toString('base64')}`}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                      <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                        <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                                      </div>
-                                    </div>
-                                  </motion.div>
-                                  {project.technicalApproachImages[index].caption && (
-                                    <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                                      {project.technicalApproachImages[index].caption}
-                                    </p>
-                                  )}
-                                </div>
-                                )
-                              ))}
-                            </div>
-
-                            {/* Last large image */}
-                            {project.technicalApproachImages[3] && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 0.6, delay: 0.4 }}
-                              className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                              onClick={() => handleImageClick(project.gallery.length + 7)}
-                            >
-                              <Image
-                                src={project.technicalApproachImages[3].src}
-                                alt={project.technicalApproachImages[3].alt}
-                                fill
-                                className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                                quality={85}
-                                loading="lazy"
-                                placeholder="blur"
-                                blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                                  '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                                ).toString('base64')}`}
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                  <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                                </div>
-                              </div>
-                            </motion.div>
-                            )}
-                            {project.technicalApproachImages[3]?.caption && (
-                              <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                                {project.technicalApproachImages[3].caption}
-                              </p>
-                            )}
-                          </>
-                        ) : (
-                          // Original layout for other projects
-                          <div className="space-y-8">
-                            {project.technicalApproachImages.map((img, index) => (
-                              <motion.div
-                                key={index}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.6, delay: index * 0.2 }}
-                                className="space-y-4"
-                              >
-                                <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group">
-                                  <Image
-                                    src={img.src}
-                                    alt={img.alt}
-                                    fill
-                                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                    sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                                    quality={85}
-                                    loading="lazy"
-                                    placeholder="blur"
-                                    blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                                      '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                                    ).toString('base64')}`}
-                                  />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                      <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                                    </div>
-                                  </div>
-                                </div>
-                                {img.caption && (
-                                  <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                                    {img.caption}
-                                  </p>
-                                )}
-                              </motion.div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Project Impact & Reflection */}
-                <div className="space-y-6 mt-16">
-                  <h2 className="text-2xl font-semibold tracking-tight">Project Impact & Reflection</h2>
-                  <div className="space-y-4">
-                    {project.impact.split(/\n\s*\n/).map((para, idx) => (
-                      para.trim() && (
-                        <p key={idx} className="text-base md:text-lg text-zinc-600 dark:text-zinc-400 mb-4">{para.trim()}</p>
-                      )
-                    ))}
-                  </div>
-                  
-                  {/* Impact Image for all projects */}
-                  {project.impactImage && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.6 }}
-                      className="mt-8"
-                    >
-                      <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group">
-                        <Image
-                          src={project.impactImage.src}
-                          alt={project.impactImage.alt}
-                          fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
-                          sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                          quality={85}
-                          loading="lazy"
-                          placeholder="blur"
-                          blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                            '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                          ).toString('base64')}`}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                          </div>
-                        </div>
-                      </div>
-                      {project.impactImage.caption && (
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                          {project.impactImage.caption}
-                        </p>
-                      )}
-                    </motion.div>
-                  )}
-                  
-                  {/* Impact Images */}
-                  {project.slug === 'gosure-brand-redesign' && project.technicalApproachImages && project.technicalApproachImages.length > 4 && (
-                    <div className="mt-12 space-y-8">
-                      {/* First large image */}
-                      {project.technicalApproachImages[4] && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                        onClick={() => handleImageClick(project.gallery.length + 8)}
-                      >
-                        <Image
-                          src={project.technicalApproachImages[4].src}
-                          alt={project.technicalApproachImages[4].alt}
-                          fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
-                          sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                          quality={85}
-                          loading="lazy"
-                          placeholder="blur"
-                          blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                            '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                          ).toString('base64')}`}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                          </div>
-                        </div>
-                      </motion.div>
-                      )}
-                      {project.technicalApproachImages[4]?.caption && (
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                          {project.technicalApproachImages[4].caption}
-                        </p>
-                      )}
-
-                      {/* Second large image */}
-                      {project.technicalApproachImages[5] && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden cursor-pointer group"
-                        onClick={() => handleImageClick(project.gallery.length + 9)}
-                      >
-                        <Image
-                          src={project.technicalApproachImages[5].src}
-                          alt={project.technicalApproachImages[5].alt}
-                          fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
-                          sizes="(min-width: 1280px) 1200px, (min-width: 768px) 768px, 100vw"
-                          quality={85}
-                          loading="lazy"
-                          placeholder="blur"
-                          blurDataURL={`data:image/svg+xml;base64,${Buffer.from(
-                            '<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg"><rect width="400" height="300" fill="#f3f4f6"/></svg>'
-                          ).toString('base64')}`}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="bg-white/10 backdrop-blur-sm p-3 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <HiMagnifyingGlass className="w-6 h-6 text-white" />
-                          </div>
-                        </div>
-                      </motion.div>
-                      )}
-                      {project.technicalApproachImages[5]?.caption && (
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center mt-4 mb-2 px-4">
-                          {project.technicalApproachImages[5].caption}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-        </motion.div>
           </>
         )}
       </Container>
@@ -1414,13 +727,11 @@ export async function getStaticPaths() {
     const cmsProjects = await getProjects();
     cmsSlugs = (cmsProjects || []).map((p) => p.slug?.current ?? p.slug).filter(Boolean);
   } catch (e) {
-    console.warn('getStaticPaths: getProjects failed, using legacy slugs only', e?.message);
+    console.warn('getStaticPaths: getProjects failed', e?.message);
   }
-  const legacySlugs = legacyProjects.map((p) => p.slug).filter(Boolean);
-  // Dedupe by normalized slug so /projects/foo and /projects/Foo don't both get paths
-  const allSlugs = [...new Set([...cmsSlugs.map(normalizeSlug), ...legacySlugs.map(normalizeSlug)])];
+  const slugs = [...new Set(cmsSlugs.map(normalizeSlug))];
   return {
-    paths: allSlugs.map((slug) => ({ params: { slug } })),
+    paths: slugs.map((slug) => ({ params: { slug } })),
     fallback: 'blocking',
   };
 }
@@ -1438,22 +749,16 @@ export async function getStaticProps({ params }) {
       getProjects(),
     ]);
   } catch (e) {
-    console.warn('getStaticProps: Sanity fetch failed, falling back to legacy', e?.message);
+    console.warn('getStaticProps: Sanity fetch failed', e?.message);
   }
 
   const normalizedCmsForCard = (cmsProjects || []).map(normalizeCmsForCard).filter(Boolean);
-  const merged = mergeProjectLists(normalizedCmsForCard, legacyProjects);
-  const otherProjects = merged.filter((p) => normalizeSlug(p.slug) !== slug);
+  const otherProjects = normalizedCmsForCard.filter((p) => normalizeSlug(p.slug) !== slug);
 
   if (cmsProject) {
-    return { props: sanitizeForSerialization({ project: cmsProject, otherProjects, projectVariant: 'cms', slug }), revalidate: 60 };
+    return { props: sanitizeForSerialization({ project: cmsProject, otherProjects, slug }), revalidate: 60 };
   }
 
-  const legacyProject = legacyProjects.find((p) => normalizeSlug(p.slug) === slug);
-  if (legacyProject) {
-    return { props: sanitizeForSerialization({ project: legacyProject, otherProjects, projectVariant: 'legacy', slug }), revalidate: 60 };
-  }
-  // No project in Sanity or legacy: render page with friendly "Not found" instead of Next.js 404
-  return { props: sanitizeForSerialization({ project: null, otherProjects: merged, projectVariant: 'legacy', slug }), revalidate: 60 };
+  return { notFound: true };
 }
  

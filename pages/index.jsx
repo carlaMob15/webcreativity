@@ -12,9 +12,6 @@ import Link from 'next/link'
 import { getSiteSettings, getFeaturedProjects, getHomePage } from '../lib/sanity-queries'
 import { urlFor } from '../lib/sanity'
 import siteMetadata from '../src/data/siteMetadata'
-import { legacyProjects } from '../data/legacy-projects'
-import { mergeProjectLists } from '../lib/projectMerge'
-
 function normalizeFeaturedProject(cmsProject) {
   if (!cmsProject) return null
   const slug = cmsProject.slug?.current ?? cmsProject.slug ?? ''
@@ -33,15 +30,14 @@ function normalizeFeaturedProject(cmsProject) {
   }
 }
 
-function getFeaturedProjectsList(cmsFeatured, legacy) {
+function getFeaturedProjectsList(cmsFeatured) {
   const normalized = (cmsFeatured || []).map(normalizeFeaturedProject).filter(Boolean)
-  const merged = mergeProjectLists(normalized, legacy || [])
   const getYear = (timeline) => {
     if (!timeline) return 0
     const match = String(timeline).match(/\d{4}/g)
     return match ? parseInt(match[match.length - 1], 10) : 0
   }
-  return merged.sort((a, b) => getYear(b.timeline) - getYear(a.timeline)).slice(0, 3)
+  return normalized.sort((a, b) => getYear(b.timeline) - getYear(a.timeline)).slice(0, 3)
 }
 
 const Home = ({ siteSettings, homePageData, featuredProjects }) => {
@@ -193,7 +189,7 @@ export async function getStaticProps() {
       getHomePage()
     ])
 
-    const featuredProjects = getFeaturedProjectsList(cmsFeatured, legacyProjects)
+    const featuredProjects = getFeaturedProjectsList(cmsFeatured)
 
     return {
       props: {
@@ -206,7 +202,7 @@ export async function getStaticProps() {
   } catch (error) {
     console.error('Error fetching data from Sanity:', error)
 
-    const featuredProjects = getFeaturedProjectsList([], legacyProjects)
+    const featuredProjects = getFeaturedProjectsList([])
 
     return {
       props: {

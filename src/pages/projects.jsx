@@ -5,13 +5,11 @@ import ContactPurpleBlock from '../components/ContactPurpleBlock'
 import { AvailableForWorkPill } from '../components/AvailableForWorkPill'
 import { Container } from '../components/Container'
 import { ProjectCard } from '../components/ProjectCard'
-import { legacyProjects } from '../../data/legacy-projects'
 import { getProjectsPage, getProjects } from '../../lib/sanity-queries'
 
 export default function Projects({ projectsPageData, projects }) {
-  // Use Sanity data if available, otherwise fall back to static data
   const currentPageData = projectsPageData || {}
-  const currentProjects = (projects && projects.length > 0) ? projects : legacyProjects
+  const currentProjects = projects || []
 
   // Sort projects by most recent year (descending)
   const sortedProjects = [...currentProjects].sort((a, b) => {

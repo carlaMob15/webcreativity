@@ -11,13 +11,10 @@ import { FadeIn, FadeInStagger } from '../components/Motion'
 import Link from 'next/link'
 import { getSiteSettings, getFeaturedProjects, getHomePage } from '../../lib/sanity-queries'
 import siteMetadata from '../data/siteMetadata'
-import { legacyProjects } from '../../data/legacy-projects'
-
 const Home = ({ siteSettings, projects, homePageData }) => {
   const heroRef = useRef(null)
-  // Use Sanity data if available, otherwise fall back to static data
   const currentSiteSettings = siteSettings || siteMetadata
-  const currentProjects = (projects && projects.length > 0) ? projects : legacyProjects
+  const currentProjects = projects || []
   const currentHomeData = homePageData || {}
 
   // Sort projects by most recent year (descending) - for static data

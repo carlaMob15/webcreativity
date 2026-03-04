@@ -443,6 +443,12 @@ const aboutPageSchema = {
       type: 'string',
     },
     {
+      name: 'servicesIntro',
+      title: 'Services Intro',
+      type: 'text',
+      description: 'Short intro paragraph below the services section heading',
+    },
+    {
       name: 'services',
       title: 'Services',
       type: 'array',
@@ -460,45 +466,66 @@ const aboutPageSchema = {
       ],
     },
     {
-      name: 'testimonialsTitle',
-      title: 'Testimonials Title',
+      name: 'processTitle',
+      title: 'My Process Title',
       type: 'string',
     },
     {
-      name: 'showTestimonials',
-      title: 'Show Testimonials Section',
-      type: 'boolean',
-      description: 'Toggle to show/hide the testimonials section on the about page',
-    },
-    {
-      name: 'testimonialsToShow',
-      title: 'Testimonials to Show',
-      type: 'array',
-      of: [
-        {
-          type: 'reference',
-          to: [{ type: 'testimonial' }],
-        },
-      ],
-      description: 'Select which testimonials to display on the about page',
-    },
-    {
-      name: 'howWeWorkTitle',
-      title: 'How We Work Title',
-      type: 'string',
-    },
-    {
-      name: 'howWeWorkDescription',
-      title: 'How We Work Description',
+      name: 'processIntro',
+      title: 'My Process Intro',
       type: 'text',
     },
     {
-      name: 'howWeWorkImage',
-      title: 'How We Work Image',
-      type: 'image',
-      options: {
-        hotspot: true,
-      },
+      name: 'processDotColor',
+      title: 'Process Step Dot Color',
+      type: 'string',
+      description: 'Hex color for the dot next to step numbers (e.g. #6366F1). Default used if step has no dot color.',
+    },
+    {
+      name: 'processSteps',
+      title: 'Process Steps',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'stepNumber', title: 'Step Number', type: 'string', description: 'e.g. "01" or "1"' },
+            { name: 'title', title: 'Title', type: 'string' },
+            { name: 'description', title: 'Description', type: 'text' },
+            { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
+            { name: 'emphasis', title: 'Larger tile (emphasis)', type: 'boolean', initialValue: false, description: 'Use a larger tile in the bento grid' },
+            { name: 'backgroundColor', title: 'Background Color', type: 'string', description: 'Hex color (e.g. #1e1d2e, #EDEEFF). Text will be white on dark, dark on light.' },
+            { name: 'dotColor', title: 'Dot Color', type: 'string', description: 'Hex color for the dot next to the number (e.g. #6366F1). Overrides section default.' },
+          ],
+          preview: {
+            select: { title: 'title', stepNumber: 'stepNumber' },
+            prepare: ({ title, stepNumber }) => ({ title: stepNumber ? `${stepNumber}. ${title}` : title }),
+          },
+        },
+      ],
+    },
+    {
+      name: 'valuesTitle',
+      title: 'What I Care About Title',
+      type: 'string',
+    },
+    {
+      name: 'valuesItems',
+      title: 'Values Items',
+      type: 'array',
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'title', title: 'Title', type: 'string' },
+            { name: 'description', title: 'Description', type: 'text' },
+          ],
+          preview: {
+            select: { title: 'title' },
+            prepare: ({ title }) => ({ title: title || 'Value item' }),
+          },
+        },
+      ],
     },
     {
       name: 'aboutTitle',
@@ -517,12 +544,39 @@ const aboutPageSchema = {
       options: {
         hotspot: true,
       },
+      description: 'Top image in "A bit more about me" section',
     },
     {
-      name: 'aboutSecondaryImages',
-      title: 'About Secondary Images',
+      name: 'aboutSecondaryImage',
+      title: 'About Secondary Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      description: 'Optional second image below the main image',
+    },
+    {
+      name: 'experienceHighlightsTitle',
+      title: 'Experience Highlights Title',
+      type: 'string',
+    },
+    {
+      name: 'experienceHighlights',
+      title: 'Experience Highlights',
       type: 'array',
-      of: [{ type: 'image' }],
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'phrase', title: 'Phrase', type: 'string', description: 'Bold highlight (e.g. "10+ years")' },
+            { name: 'description', title: 'Description', type: 'text', description: 'Line below the phrase' },
+          ],
+          preview: {
+            select: { phrase: 'phrase' },
+            prepare: ({ phrase }) => ({ title: phrase || 'Highlight' }),
+          },
+        },
+      ],
     },
   ],
 }

@@ -61,8 +61,8 @@ function CardContent({ item, bg }) {
   const textClass = isLight ? 'text-neutral-900' : 'text-white'
   const descClass = isLight ? 'text-neutral-600' : 'text-white/80'
   return (
-    <div className={`${CARD_PADDING} flex flex-col items-start justify-center min-h-full w-full`}>
-      <div className="w-full max-w-4xl text-left">
+    <div className={`${CARD_PADDING} flex flex-col items-center justify-center min-h-full w-full`}>
+      <div className="w-full max-w-4xl mx-auto text-left">
         <h3 className={`text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight leading-[1.35] md:leading-[1.5] lg:leading-[1.35] ${textClass} text-left`}>
           {item.title}
         </h3>
@@ -149,6 +149,13 @@ export default function ValuesSlidingCards({ title, items = [] }) {
       className="relative -mt-8"
       aria-label={title || 'What I care about'}
     >
+      <div className="mx-auto max-w-5xl lg:max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 mb-8 md:mb-10">
+        {title && (
+          <h2 className="text-3xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-4xl">
+            {title}
+          </h2>
+        )}
+      </div>
       <div className="h-[380vh] relative">
         <div className="sticky top-12 md:top-16 left-0 right-0 z-10 py-4 h-[75vh] min-h-[320px] md:h-[88vh] md:min-h-[520px]">
           <div className="h-full mx-auto max-w-5xl lg:max-w-7xl px-4 sm:px-6 md:px-8 lg:px-10 relative">
@@ -178,7 +185,7 @@ export default function ValuesSlidingCards({ title, items = [] }) {
                     scale: scaleVals[i],
                   }}
                 >
-                  <motion.div className="h-full w-full flex flex-col items-start justify-center" style={{ opacity: opacityVals[i] }}>
+                  <motion.div className="h-full w-full flex flex-col items-center justify-center" style={{ opacity: opacityVals[i] }}>
                     <CardContent item={card} bg={card.bg} />
                   </motion.div>
                 </motion.div>

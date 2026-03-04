@@ -6,16 +6,16 @@ import { urlFor } from '../../lib/sanity'
 const DEFAULT_STEP_BG = '#1e1d2e'
 const DEFAULT_DOT_COLOR = '#6366F1'
 
-/** Returns true if hex is dark (use white text). */
+/** Returns true if hex is dark (use white text). Purple/brand (#6366F1) and similar mid-tones use white text. */
 function isDarkHex(hex) {
   if (!hex || typeof hex !== 'string') return true
-  const h = hex.replace(/^#/, '')
+  const h = hex.replace(/^#/, '').toLowerCase()
   if (h.length !== 6 && h.length !== 8) return true
   const r = parseInt(h.slice(0, 2), 16) / 255
   const g = parseInt(h.slice(2, 4), 16) / 255
   const b = parseInt(h.slice(4, 6), 16) / 255
   const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
-  return luminance <= 0.4
+  return luminance <= 0.5
 }
 
 /**

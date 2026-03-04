@@ -86,7 +86,7 @@ export default function ServicesAccordion({ title, intro, services = [], getServ
                       {service.title}
                     </span>
                     <span
-                      className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-[#6366F1] transition-transform duration-200"
+                      className="flex-shrink-0 w-6 h-6 flex items-center justify-center text-white transition-transform duration-200"
                       aria-hidden
                       style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                     >

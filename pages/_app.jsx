@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import Head from 'next/head'
+import { Analytics } from '@vercel/analytics/next'
 import { Footer } from '../src/components/Footer'
 import { Header } from '../src/components/Header'
 import SEO from '../src/components/SEO'
@@ -44,6 +45,7 @@ export default function App({ Component, pageProps, router }) {
         </main>
         <Footer />
       </div>
+      <Analytics />
     </>
   )
 }

@@ -10,6 +10,8 @@ const variantStyles = {
     'rounded-md border border-neutral-300 bg-transparent font-medium text-neutral-700 hover:bg-neutral-50 active:bg-neutral-100 active:text-neutral-900/60 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800/50 dark:hover:text-neutral-50 dark:active:bg-neutral-800 dark:active:text-neutral-50/70 focus:ring-2 focus:ring-neutral-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 hover:scale-105 active:scale-95',
   headerContact:
     'rounded-full bg-[#6366f1] font-medium text-white hover:bg-[#4f46e5] active:bg-[#4338ca] active:text-white/90 transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-[#6366f1] focus:ring-offset-2 dark:focus:ring-offset-neutral-900',
+  lightSolid:
+    'rounded-full bg-white font-medium text-primary-600 shadow-sm hover:bg-white/90 active:bg-white/80 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-500',
 }
 
 export function Button({ variant = 'primary', className, href, children, ...props }) {

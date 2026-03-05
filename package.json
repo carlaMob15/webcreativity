@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:safe": "ulimit -n 10240 2>/dev/null; next dev",
     "dev:3001": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
@@ -34,6 +35,7 @@
     "feed": "^4.2.2",
     "focus-visible": "^5.2.0",
     "framer-motion": "^7.10.3",
+    "lucide-react": "^0.577.0",
     "next": "13.4.19",
     "postcss-focus-visible": "^6.0.4",
     "react": "18.2.0",

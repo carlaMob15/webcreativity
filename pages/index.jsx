@@ -6,6 +6,7 @@ import { AvailableForWorkPill } from '../src/components/AvailableForWorkPill'
 import { ProjectCard } from '../src/components/ProjectCard'
 import ContactPurpleBlock from '../src/components/ContactPurpleBlock'
 import WhatICanHelpWith from '../src/components/WhatICanHelpWith'
+import HomeHowIWorkSection from '../src/components/home/HomeHowIWorkSection'
 import OptimizedImage from '../src/components/OptimizedImage'
 import { FadeIn, FadeInStagger } from '../src/components/Motion'
 import Link from 'next/link'
@@ -170,6 +171,11 @@ const Home = ({ siteSettings, homePageData, featuredProjects }) => {
               )}
             </div>
           </Container>
+
+          {/* How I work – dark section, content matches container width, chips edge to edge */}
+          <div className="mt-24 sm:mt-32">
+            <HomeHowIWorkSection />
+          </div>
 
           {/* Contact Section – same width as scrolling cards (max-w-5xl lg:max-w-7xl) */}
           <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" siteSettings={currentSiteSettings} />

@@ -23,8 +23,8 @@ import { Button } from '../Button'
 const SECTION_BG = '#141320'
 
 const ROW1_SKILLS = [
-  { label: 'UX Design', Icon: Palette },
-  { label: 'UI Design', Icon: LayoutDashboard },
+  { label: 'UX Design', Icon: LayoutDashboard },
+  { label: 'UI Design', Icon: Palette },
   { label: 'Prototyping', Icon: Box },
   { label: 'Design Systems', Icon: LayoutGrid },
   { label: 'Journey mapping', Icon: Map },
@@ -43,6 +43,7 @@ const ROW2_SKILLS = [
 ]
 
 const MARQUEE_DURATION = 50
+const MARQUEE_COPIES = 4
 
 function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
@@ -57,14 +58,14 @@ function usePrefersReducedMotion() {
 }
 
 function ChipRow({ items, direction = 'left', reduceMotion }) {
-  const duplicated = useMemo(() => [...items, ...items], [items])
+  const duplicated = useMemo(() => Array.from({ length: MARQUEE_COPIES }, () => items).flat(), [items])
   const marqueeVariants = {
     left: {
-      x: ['0%', '-50%'],
+      x: ['0%', '-25%'],
       transition: { repeat: Infinity, repeatType: 'loop', duration: MARQUEE_DURATION, ease: 'linear' },
     },
     right: {
-      x: ['-50%', '0%'],
+      x: ['-25%', '0%'],
       transition: { repeat: Infinity, repeatType: 'loop', duration: MARQUEE_DURATION, ease: 'linear' },
     },
   }
@@ -119,7 +120,11 @@ export default function HomeHowIWorkSection() {
               real constraints in mind and a strong focus on usability and scale.
             </p>
             <div className="mt-8">
-              <Button variant="lightSolid" href="/about" className="px-6 py-3 text-base">
+              <Button
+                variant="lightOutline"
+                href="https://www.webcreativity.studio/about"
+                className="px-6 py-3 text-base"
+              >
                 Learn more about me
               </Button>
             </div>
@@ -128,13 +133,21 @@ export default function HomeHowIWorkSection() {
       </div>
 
       {/* Chips – full-width strip, marquee runs edge to edge (not cropped by container) */}
-      <div className="w-full overflow-hidden mt-16 sm:mt-20 space-y-6">
+      <div className="relative w-full overflow-hidden mt-16 sm:mt-20 space-y-6">
         <div className="overflow-hidden">
           <ChipRow items={ROW1_SKILLS} direction="left" reduceMotion={reduceMotion} />
         </div>
         <div className="overflow-hidden">
           <ChipRow items={ROW2_SKILLS} direction="right" reduceMotion={reduceMotion} />
         </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-y-7 left-0 w-20 sm:w-28 md:w-36 bg-gradient-to-r from-[#141320] to-transparent"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-y-7 right-0 w-20 sm:w-28 md:w-36 bg-gradient-to-l from-[#141320] to-transparent"
+        />
       </div>
     </section>
   )

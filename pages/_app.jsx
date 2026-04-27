@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Head from 'next/head'
 import { Analytics } from '@vercel/analytics/react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Footer } from '../src/components/Footer'
 import { Header } from '../src/components/Header'
 import SEO from '../src/components/SEO'
@@ -41,7 +42,17 @@ export default function App({ Component, pageProps, router }) {
       <div className="relative flex min-h-screen flex-col">
         <Header />
         <main className="flex-auto">
-          <Component previousPathname={previousPathname} {...pageProps} />
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={router.asPath}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <Component previousPathname={previousPathname} {...pageProps} />
+            </motion.div>
+          </AnimatePresence>
         </main>
         <Footer />
       </div>

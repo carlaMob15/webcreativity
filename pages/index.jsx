@@ -131,21 +131,13 @@ const Home = ({ siteSettings, homePageData, featuredProjects }) => {
           {/* Featured projects */}
           <Container className="mt-32 sm:mt-40">
             <FadeIn>
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between md:gap-8 gap-6">
-                <div className="min-w-0">
-                  <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
-                    Featured projects
-                  </h2>
-                  <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl">
-                    A selection of recent work, focused on complex products, real constraints, and practical outcomes.
-                  </p>
-                </div>
-                <Link
-                  href="/projects"
-                  className="flex-shrink-0 inline-flex items-center justify-center px-5 py-2.5 rounded-full text-base font-medium border-2 border-[rgb(99,102,241)] text-[rgb(99,102,241)] hover:bg-[rgb(99,102,241)] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)] focus:ring-offset-2"
-                >
-                  See more projects
-                </Link>
+              <div className="min-w-0">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-800 dark:text-neutral-100">
+                  Featured projects
+                </h2>
+                <p className="mt-4 text-lg text-neutral-600 dark:text-neutral-400 max-w-2xl">
+                  A selection of recent work, focused on complex products, real constraints, and practical outcomes.
+                </p>
               </div>
             </FadeIn>
             <div className="mt-12 md:mt-16 space-y-8 md:space-y-10">
@@ -169,6 +161,14 @@ const Home = ({ siteSettings, homePageData, featuredProjects }) => {
                   ))}
                 </div>
               )}
+            </div>
+            <div className="mt-10 md:mt-12 flex justify-center">
+              <Link
+                href="/projects"
+                className="inline-flex items-center justify-center px-5 py-2.5 rounded-full text-base font-medium border-2 border-[rgb(99,102,241)] text-[rgb(99,102,241)] hover:bg-[rgb(99,102,241)] hover:text-white transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[rgb(99,102,241)] focus:ring-offset-2"
+              >
+                See more projects
+              </Link>
             </div>
           </Container>
 

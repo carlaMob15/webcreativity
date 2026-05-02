@@ -1,6 +1,10 @@
 import { motion } from 'framer-motion';
 import siteMetadata from '../data/siteMetadata';
 
+/** Solid white pill CTA used on the purple contact block (and reused where we match that style). */
+export const contactPurpleBlockCtaClassName =
+  'rounded-full bg-white px-6 sm:px-8 py-3 text-base font-medium text-primary-600 shadow-sm hover:bg-white/90 transition-all duration-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-500'
+
 export default function ContactPurpleBlock({
   className = '',
   bgColor = 'bg-primary-500', // solid color, can be overridden
@@ -35,7 +39,7 @@ export default function ContactPurpleBlock({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               href={`mailto:${siteMetadata.email}`}
-              className="rounded-full bg-white px-6 sm:px-8 py-3 text-base font-medium text-primary-600 shadow-sm hover:bg-white/90 transition-all duration-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary-500"
+              className={contactPurpleBlockCtaClassName}
             >
               {cta}
             </motion.a>

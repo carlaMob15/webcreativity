@@ -18,7 +18,7 @@ import {
   BarChart3,
   Lightbulb,
 } from 'lucide-react'
-import { Button } from '../Button'
+import { contactPurpleBlockCtaClassName } from '../ContactPurpleBlock'
 
 const SECTION_BG = '#141320'
 
@@ -120,13 +120,14 @@ export default function HomeHowIWorkSection() {
               real constraints in mind and a strong focus on usability and scale.
             </p>
             <div className="mt-8">
-              <Button
-                variant="lightOutline"
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 href="https://www.webcreativity.studio/about"
-                className="px-6 py-3 text-base"
+                className={contactPurpleBlockCtaClassName}
               >
                 Learn more about me
-              </Button>
+              </motion.a>
             </div>
           </div>
         </div>

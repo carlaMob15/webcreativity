@@ -25,7 +25,7 @@ const ArrowIcon = () => (
   </svg>
 )
 
-const ArrowUpRightIcon = ({ className = '' }) => (
+export const ArrowUpRightIcon = ({ className = '' }) => (
   <svg
     className={clsx('w-5 h-5 transition-colors duration-300', className)}
     viewBox="0 0 24 24"

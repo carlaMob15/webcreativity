@@ -16,7 +16,14 @@ const nextConfig = {
     ]
   },
   images: {
-    domains: ['picsum.photos', 'via.placeholder.com', 'images.unsplash.com', 'cdn.sanity.io'],
+    domains: [
+      'picsum.photos',
+      'via.placeholder.com',
+      'images.unsplash.com',
+      'cdn.sanity.io',
+      'cdn-images-1.medium.com',
+      'miro.medium.com',
+    ],
     unoptimized: true,
   },
   // Optimize development performance

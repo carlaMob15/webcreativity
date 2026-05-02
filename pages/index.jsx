@@ -7,10 +7,12 @@ import { ProjectCard } from '../src/components/ProjectCard'
 import ContactPurpleBlock from '../src/components/ContactPurpleBlock'
 import WhatICanHelpWith from '../src/components/WhatICanHelpWith'
 import HomeHowIWorkSection from '../src/components/home/HomeHowIWorkSection'
+import BlogPreviewSection from '../src/components/home/BlogPreviewSection'
 import OptimizedImage from '../src/components/OptimizedImage'
 import { FadeIn, FadeInStagger } from '../src/components/Motion'
 import Link from 'next/link'
 import { getSiteSettings, getFeaturedProjects, getHomePage } from '../lib/sanity-queries'
+import { getLatestMediumPosts } from '../lib/medium-rss'
 import { urlFor } from '../lib/sanity'
 import siteMetadata from '../src/data/siteMetadata'
 function normalizeFeaturedProject(cmsProject) {
@@ -41,7 +43,7 @@ function getFeaturedProjectsList(cmsFeatured) {
   return normalized.sort((a, b) => getYear(b.timeline) - getYear(a.timeline)).slice(0, 3)
 }
 
-const Home = ({ siteSettings, homePageData, featuredProjects }) => {
+const Home = ({ siteSettings, homePageData, featuredProjects, mediumPosts }) => {
   const heroRef = useRef(null)
   const currentSiteSettings = siteSettings || siteMetadata
   const currentHomeData = homePageData || {}
@@ -177,6 +179,8 @@ const Home = ({ siteSettings, homePageData, featuredProjects }) => {
             <HomeHowIWorkSection />
           </div>
 
+          <BlogPreviewSection posts={mediumPosts || []} />
+
           {/* Contact Section – same width as scrolling cards (max-w-5xl lg:max-w-7xl) */}
           <ContactPurpleBlock className="mt-24 sm:mt-32 mb-16" siteSettings={currentSiteSettings} />
         </div>
@@ -189,11 +193,13 @@ const Home = ({ siteSettings, homePageData, featuredProjects }) => {
 // Fetch data from Sanity at build time
 export async function getStaticProps() {
   try {
-    const [siteSettings, cmsFeatured, homePageData] = await Promise.all([
-      getSiteSettings(),
-      getFeaturedProjects(),
-      getHomePage()
-    ])
+    const [siteSettings, cmsFeatured, homePageData, mediumPosts] =
+      await Promise.all([
+        getSiteSettings(),
+        getFeaturedProjects(),
+        getHomePage(),
+        getLatestMediumPosts(2),
+      ])
 
     const featuredProjects = getFeaturedProjectsList(cmsFeatured)
 
@@ -202,21 +208,30 @@ export async function getStaticProps() {
         siteSettings: siteSettings || null,
         homePageData: homePageData || null,
         featuredProjects,
+        mediumPosts,
       },
-      revalidate: 60, // Revalidate every minute
+      // Align with Medium RSS refresh cadence (6h); ISR updates writing section automatically
+      revalidate: 21600,
     }
   } catch (error) {
     console.error('Error fetching data from Sanity:', error)
 
     const featuredProjects = getFeaturedProjectsList([])
+    let mediumPosts = []
+    try {
+      mediumPosts = await getLatestMediumPosts(2)
+    } catch {
+      mediumPosts = []
+    }
 
     return {
       props: {
         siteSettings: null,
         homePageData: null,
         featuredProjects,
+        mediumPosts,
       },
-      revalidate: 60,
+      revalidate: 21600,
     }
   }
 }

@@ -102,7 +102,7 @@ export default function HomeHowIWorkSection() {
       {/* Content – same width as Container (max-w-2xl lg:max-w-5xl) */}
       <div className="mx-auto max-w-7xl sm:px-8 lg:px-8">
         <div className="relative px-4 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-2xl lg:max-w-5xl mb-12 md:mb-16">
+          <div className="mx-auto max-w-2xl lg:max-w-5xl mb-16 md:mb-24">
             <h2
               id="how-i-work-heading"
               className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-white"
@@ -119,7 +119,7 @@ export default function HomeHowIWorkSection() {
               work closely with product managers and engineers, designing with
               real constraints in mind and a strong focus on usability and scale.
             </p>
-            <div className="mt-8">
+            <div className="mt-12 md:mt-16">
               <motion.a
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -134,7 +134,7 @@ export default function HomeHowIWorkSection() {
       </div>
 
       {/* Chips – full-width strip, marquee runs edge to edge (not cropped by container) */}
-      <div className="relative w-full overflow-hidden mt-16 sm:mt-20 space-y-6">
+      <div className="relative w-full overflow-hidden mt-20 sm:mt-28 md:mt-32 space-y-6">
         <div className="overflow-hidden">
           <ChipRow items={ROW1_SKILLS} direction="left" reduceMotion={reduceMotion} />
         </div>
